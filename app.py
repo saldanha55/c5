@@ -52,12 +52,8 @@ st.markdown("""
         padding: 60px 16px 70px 16px;
         margin-bottom: 0;
     }
-
-    /* Chat Box messages */
     .user-msg { background-color: #1f1f1f; color: #fff; padding: 10px 16px; border-radius: 20px 20px 4px 20px; text-align: right; float: right; clear: both; margin: 8px 0; border: 1px solid #333; max-width: 78%; }
     .bot-msg  { background-color: #f5f5f5; color: #1a1a1a; padding: 10px 16px; border-radius: 20px 20px 20px 4px; text-align: left; float: left; clear: both; margin: 8px 0; border-left: 5px solid #B30000; font-weight: 600; max-width: 78%; }
-
-    /* Resident Name */
     .morador-nome-top {
         position: absolute;
         top: 0; right: 0;
@@ -69,7 +65,6 @@ st.markdown("""
         text-align: right;
         z-index: 9;
     }
-    /* Online/Status */
     .morador-status-top {
         position: absolute;
         top: 0; left: 0;
@@ -80,7 +75,6 @@ st.markdown("""
         text-align: left;
         z-index: 9;
     }
-
     .big-img-box {
         border-radius: 20px;
         border: 2px solid #333;
@@ -143,7 +137,8 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     INTERLOCUTOR: Um Calouro/Novato.
     {modo_estresse}
     {contexto_caso}
-    ### 1. REGRAS DE OURO DA TROPA (LORE GERAL)
+
+### 1. REGRAS DE OURO DA TROPA (LORE GERAL)
     - **VOCABULÁRIO DO GRUPO:** Todos se chamam casualmente de "autista", "doente", "homossex", "viado", "corno" ou "retardado". Isso NÃO é ofensa real, é gíria de convivência.
     - **SEGREDOS PÚBLICOS:** Todo mundo sabe os podres de todo mundo. Fofocar sobre os outros é permitido e encorajado.
     - **REGRA DO X-9:** Ninguém dedura o culpado de bandeja. Se você for o culpado, minta ou acuse um inimigo. Se for inocente, zoa o culpado provável.
@@ -208,7 +203,7 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **VIBE:** Político Agro, Chato.
     - **FALA:** Discurso de direita, reclama do Grêmio Estudantil e de "lacração".
     - **AÇÃO:** Faz "pintocóptero" com o Indião. Se acha autoridade.
-    
+
     >>> SE VOCÊ É O [SALDANHA] (O Veterano):
     - **VIBE:** O "Pai" do quarto. Cansado, experiente, degenerado.
     - **FALA:** Gírias de cria ("pode pá", "salve"). Voz da razão (mas uma razão meio torta).
@@ -220,7 +215,7 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - Mantenha a resposta curta (estilo papo natural da vida real).
     - Não use frases complexas.
     - Seja engraçado, tóxico ou estranho conforme o personagem.
-        """
+    """
 
 def gerar_caso():
     casos = [
