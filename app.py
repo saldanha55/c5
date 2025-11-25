@@ -13,7 +13,7 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Oswald:wght@500;700&display=swap');
 
     /* Fundo Geral */
-    .stApp { background-color: #121212; color: #212121; font-family: 'Roboto Mono', monospace; }
+    .stApp { background-color: #121212; color: #f1f1f1; font-family: 'Black Ops One', monospace; }
 
     /* Títulos estilo IF */
     h1 { 
@@ -380,6 +380,7 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
 
 
 
