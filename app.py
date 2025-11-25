@@ -7,12 +7,13 @@ import google.generativeai as genai
 # --- 1. CONFIGURAÇÃO VISUAL E START ---
 st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="wide")
 
-# --- DESIGN SYSTEM: PREMIUM EDITORIAL (DARK MODE) ---
+# --- DESIGN SYSTEM: SERIF TITLES & MODERN BODY ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
 
-    html, body, [class*="css"], div, input, textarea { font-family: 'Montserrat', sans-serif !important; }
+    html, body, [class*="css"], div, input, textarea { font-family: 'Montserrat', sans-serif !important;}
+
     .stApp {
         background-color: #0a0a0a;
         background-image: radial-gradient(#222 1px, transparent 1px);
@@ -20,73 +21,67 @@ st.markdown("""
         color: #e0e0e0;
     }
 
-    /* Input Chat Edit */
-    .chat-input-box {
-        background: #000 !important;
-        color: #fff !important;
-        border-radius: 16px;
-        padding: 4px 12px;
-        font-size: 1rem !important;
-        border: 2px solid #222 !important;
-        min-height: 38px !important;
-        max-height: 44px !important;
-        margin-bottom: 0;
-        margin-top: 0;
-        width: 100%;
-        outline: none;
+    h1, h2, .serif-title {
+        font-family: 'Playfair Display', serif !important;
+        color: #fff;
+        letter-spacing: -1px;
     }
-    .chat-input-row {
-        position: absolute;
-        left: 0; right: 0; bottom: 0;
-        padding: 0 10px 8px 10px;
-        background: transparent;
-        z-index: 10;
-    }
-    .chat-container-scroll {
-        position: relative;
-        height: 490px;
-        max-height: 490px;
-        overflow-y: auto;
-        background: #161616;
-        border-radius: 25px;
-        padding: 60px 16px 70px 16px;
-        margin-bottom: 0;
-    }
-    .user-msg { background-color: #1f1f1f; color: #fff; padding: 10px 16px; border-radius: 20px 20px 4px 20px; text-align: right; float: right; clear: both; margin: 8px 0; border: 1px solid #333; max-width: 78%; }
-    .bot-msg  { background-color: #f5f5f5; color: #1a1a1a; padding: 10px 16px; border-radius: 20px 20px 20px 4px; text-align: left; float: left; clear: both; margin: 8px 0; border-left: 5px solid #B30000; font-weight: 600; max-width: 78%; }
-    .morador-nome-top {
-        position: absolute;
-        top: 0; right: 0;
-        font-size: 2.4rem;
-        font-weight: 900;
-        color: #32A041;
-        padding: 20px 38px 0 0;
-        letter-spacing: -.03em;
+    h1, .serif-h1 { font-size: 3.5rem !important; font-weight:700 !important; text-align: center; margin-top: 10px; }
+    h2, .serif-h2 { font-size: 2rem !important; font-style: italic; font-weight:400 !important; text-align: center; }
+
+    .char-name-top {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 2.2rem;
+        font-weight: 700;
         text-align: right;
-        z-index: 9;
+        color: var(--name-color, #32A041);
+        margin: 0;
     }
-    .morador-status-top {
-        position: absolute;
-        top: 0; left: 0;
+    .status-indicator {
+        font-family: 'Montserrat', sans-serif !important;
         font-size: 1.13rem;
         font-weight:600;
-        color: #e0e0e0;
-        padding: 20px 0 0 38px;
-        text-align: left;
-        z-index: 9;
+        padding-left: 8px;
+        margin-top: 12px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
     .big-img-box {
         border-radius: 20px;
         border: 2px solid #333;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.35);
         margin-bottom: 0;
         width: 100%;
         aspect-ratio: 1/1;
         object-fit: cover;
-        max-width:370px;
-        max-height:370px;
+        max-width: 370px;
+        max-height: 370px;
         background: #191919;
-        display:block;
+        display: block;
+    }
+    .chat-container-scroll {
+        position: relative;
+        height: 470px;
+        max-height: 470px;
+        overflow-y: auto;
+        background: #161616;
+        border-radius: 28px;
+        padding: 38px 18px 72px 18px;
+        margin-bottom: 0;
+    }
+    .user-msg { background-color: #1f1f1f; color: #fff; padding: 10px 16px; border-radius: 20px 20px 4px 20px; text-align: right; float: right; clear: both; margin: 8px 0; border: 1px solid #333; max-width: 78%; font-family: 'Montserrat', sans-serif;}
+    .bot-msg  { background-color: #f5f5f5; color: #1a1a1a; padding: 10px 16px; border-radius: 20px 20px 20px 4px; text-align: left; float: left; clear: both; margin: 8px 0; border-left: 5px solid #B30000; font-weight: 600; max-width: 78%; font-family: 'Montserrat', sans-serif;}
+    /* Modern chat input */
+    .stChatInput textarea {
+        min-height:38px !important; max-height:45px !important;
+        background: #000 !important;
+        color: #fff !important;
+        font-size: 1.06rem !important;
+        border-radius: 12px !important;
+        border: 2px solid #222 !important;
+        padding-left:18px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -257,9 +252,10 @@ if 'personagem_atual' not in st.session_state: st.session_state.personagem_atual
 if 'contador_conversas' not in st.session_state: st.session_state.contador_conversas = 0
 if 'msg_no_turno' not in st.session_state: st.session_state.msg_no_turno = 0
 
+# --- TELA INICIAL ---
 if st.session_state.fase == 'START':
-    st.markdown("<h1>TROPA DO C5</h1>", unsafe_allow_html=True)
-    st.markdown("<h2>QUEM É O ARROMBADO?</h2>", unsafe_allow_html=True)
+    st.markdown("<h1 class='serif-h1'>TROPA DO C5</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 class='serif-h2'>QUEM É O ARROMBADO?</h2>", unsafe_allow_html=True)
     st.write("\n\n")
     c1, c2, c3 = st.columns([1,2,1])
     with c2:
@@ -269,7 +265,7 @@ if st.session_state.fase == 'START':
             st.rerun()
 
 elif st.session_state.fase == 'SELECAO_INICIAL':
-    st.markdown("<h2>QUEM VOCÊ VAI CUMPRIMENTAR?</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 class='serif-h2'>QUEM VOCÊ VAI CUMPRIMENTAR?</h2>", unsafe_allow_html=True)
     cols = st.columns(5)
     for i, (nome, dados) in enumerate(PERSONAGENS.items()):
         with cols[i % 5]:
@@ -291,35 +287,22 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user':
         status = "✍️ Digitando..."
 
-    col_left, col_right = st.columns([1.15, 2.85])
+    col_left, col_right = st.columns([1.2, 2.8])
     with col_left:
-        st.markdown(f"<div style='position:relative;height:418px;'>"
-                    f"<img src='{dados['img']}' class='big-img-box' />"
-                    f"<div class='morador-status-top'>{status}</div>"
-                    f"</div>", unsafe_allow_html=True)
+        st.image(dados['img'], use_column_width=True)
+        st.markdown(f"<div class='status-indicator'>{status}</div>", unsafe_allow_html=True)
     with col_right:
-        st.markdown(f"""
-        <div style="position:relative; min-height:490px;">
-            <div class="morador-nome-top">{nome}</div>
-            <div class="chat-container-scroll">
-                {"".join([f"<div class='user-msg'>{msg['content']}</div>" if msg['role']=="user" else f"<div class='bot-msg'>{msg['content']}</div>" for msg in st.session_state.chat_history])}
-            </div>
-            <div class="chat-input-row">
-                <form method="POST" onsubmit="return false;">
-                  <input id="streamlit-chat-input" name="user_input"
-                      class="chat-input-box"
-                      autocomplete="off"
-                      maxlength="160"
-                      type="text"
-                      placeholder="Mande o papo (ou 'tchau' para sair)..."
-                      style="width:92%;margin-right:6px;">
-                  <button type="submit" style="background:#222;border-radius:8px;padding:0 18px;color:#eee;font-size:1.06rem;border:none;">→</button>
-                </form>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='display: flex; justify-content: flex-end;'><span class='char-name-top' style='color:{dados['cor']}'>{nome}</span></div>",
+            unsafe_allow_html=True)
+        st.markdown("<div class='chat-container-scroll'>", unsafe_allow_html=True)
+        for msg in st.session_state.chat_history:
+            if msg['role'] == 'user':
+                st.markdown(f"<div class='user-msg'>{msg['content']}</div>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<div class='bot-msg'>{msg['content']}</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
         user_input = st.chat_input("Mande o papo (ou 'tchau' para sair)...")
-
         if user_input:
             if user_input.lower() in ['tchau', 'flw', 'vlw', 'vaza', 'sair', 'proximo', 'fui']:
                 avancar_personagem()
@@ -354,7 +337,7 @@ elif st.session_state.fase == 'ALERTA_EVENTO':
                 st.rerun()
 
 elif st.session_state.fase == 'VEREDITO':
-    st.markdown("<h1>QUEM FOI?</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='serif-h1'>QUEM FOI?</h1>", unsafe_allow_html=True)
     st.markdown(f"**OCORRIDO:** {st.session_state.caso_atual['texto']}")
     escolha = st.selectbox("Selecione o Culpado:", list(PERSONAGENS.keys()))
     if st.button("ACUSAR", type="primary"):
