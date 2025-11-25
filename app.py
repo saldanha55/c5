@@ -273,24 +273,43 @@ elif st.session_state.fase == 'SELECAO_INICIAL':
                 st.session_state.fase = 'SOCIAL'
                 st.rerun()
 
-# TELA CHAT (DESIGN FINAL)
+# TELA CHAT (DESIGN FINAL AJUSTADO)
 elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
     
+    # Status
     status_txt = "🟢 Online"
-    if st.session_state.msg_no_turno > 3: status_txt = "⚠️ Estressado"
+    cor_status = "#32A041"
+    
+    if st.session_state.msg_no_turno > 3: 
+        status_txt = "⚠️ Estressado"
+        cor_status = "#ff4757"
+        
     if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user':
         status_txt = "✍️ Digitando..."
+        cor_status = "#eccc68"
 
-    col_img, col_chat = st.columns([1, 2.5])
+    # Layout: 1/3 Imagem, 2/3 Chat
+    col_img, col_chat = st.columns([1, 3], gap="medium")
     
     with col_img:
-        st.markdown(f"<div class='char-name-title' style='color: {dados['cor']};'>{nome}</div>", unsafe_allow_html=True)
-        st.markdown(f"<img src='{dados['img']}' class='profile-img'>", unsafe_allow_html=True)
-        
+        # Imagem usando st.image (Carrega melhor que HTML puro às vezes)
+        try:
+            st.image(dados['img'], use_container_width=True)
+        except:
+            st.error(f"Erro na img: {dados['img']}")
+            
     with col_chat:
-        st.markdown(f"<div class='status-indicator'>{status_txt}</div>", unsafe_allow_html=True)
+        # Nome e Status Agrupados
+        st.markdown(f"""
+            <div style="border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px;">
+                <div class='char-name-title' style='color: {dados['cor']}; margin-bottom: 0px;'>{nome}</div>
+                <div style='font-family: Montserrat; font-size: 0.9rem; color: {cor_status}; font-weight: 600;'>{status_txt}</div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Container de Chat
         chat_html = "<div class='chat-scroll-area'>"
         for msg in st.session_state.chat_history:
             if msg['role'] == 'user':
@@ -300,6 +319,7 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
         chat_html += "</div>"
         st.markdown(chat_html, unsafe_allow_html=True)
 
+    # Input Fixo
     user_input = st.chat_input("Mande o papo...")
 
     if user_input:
@@ -308,14 +328,16 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
         else:
             st.session_state.chat_history.append({'role': 'user', 'content': user_input})
             st.session_state.msg_no_turno += 1
-            time.sleep(0.3)
+            time.sleep(0.2)
             
+            # Chama a IA e MOSTRA O ERRO SE TIVER
             prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
             try:
                 chat = model.start_chat(history=[])
                 resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
             except Exception as e:
-                resp = f"Erro na IA: {e}"
+                # ISSO AQUI VAI TE MOSTRAR POR QUE ESTÁ DANDO "..."
+                resp = f"❌ ERRO DA IA: {str(e)} \n(Verifique a Chave API)"
             
             st.session_state.chat_history.append({'role': 'bot', 'content': resp})
             st.rerun()
@@ -348,3 +370,4 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
