@@ -10,12 +10,9 @@ st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="wide")
 # --- DESIGN SYSTEM: PREMIUM EDITORIAL (DARK MODE) ---
 st.markdown("""
 <style>
-    /* 1. IMPORTANDO FONTES */
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
 
-    /* --- 2. GERAL --- */
     html, body, [class*="css"], div, input, textarea { font-family: 'Montserrat', sans-serif !important; }
-    
     .stApp {
         background-color: #0a0a0a;
         background-image: radial-gradient(#222 1px, transparent 1px);
@@ -23,73 +20,80 @@ st.markdown("""
         color: #e0e0e0;
     }
 
-    /* --- 3. INPUT (TUDO PRETO) --- */
-    [data-testid="stBottom"] {
-        background-color: #0a0a0a !important;
-        border-top: 1px solid #333;
-        padding-bottom: 30px;
-        padding-top: 20px;
-    }
-
-    .stChatInput textarea {
-        background-color: #000000 !important;
-        color: #ffffff !important;
-        border: 2px solid #333 !important;
-        border-radius: 12px !important;
-        padding: 15px !important;
-        caret-color: #32A041;
-    }
-    
-    .stChatInput textarea:focus {
-        border: 2px solid #32A041 !important;
-        box-shadow: 0 0 15px rgba(50, 160, 65, 0.2) !important;
-    }
-
-    ::placeholder { color: #666 !important; opacity: 1; }
-
-    /* --- 4. BOTÕES --- */
-    div.stButton > button {
+    /* Input Chat Edit */
+    .chat-input-box {
+        background: #000 !important;
+        color: #fff !important;
+        border-radius: 16px;
+        padding: 4px 12px;
+        font-size: 1rem !important;
+        border: 2px solid #222 !important;
+        min-height: 38px !important;
+        max-height: 44px !important;
+        margin-bottom: 0;
+        margin-top: 0;
         width: 100%;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        background-color: transparent;
+        outline: none;
+    }
+    .chat-input-row {
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        padding: 0 10px 8px 10px;
+        background: transparent;
+        z-index: 10;
+    }
+    .chat-container-scroll {
+        position: relative;
+        height: 490px;
+        max-height: 490px;
+        overflow-y: auto;
+        background: #161616;
+        border-radius: 25px;
+        padding: 60px 16px 70px 16px;
+        margin-bottom: 0;
+    }
+
+    /* Chat Box messages */
+    .user-msg { background-color: #1f1f1f; color: #fff; padding: 10px 16px; border-radius: 20px 20px 4px 20px; text-align: right; float: right; clear: both; margin: 8px 0; border: 1px solid #333; max-width: 78%; }
+    .bot-msg  { background-color: #f5f5f5; color: #1a1a1a; padding: 10px 16px; border-radius: 20px 20px 20px 4px; text-align: left; float: left; clear: both; margin: 8px 0; border-left: 5px solid #B30000; font-weight: 600; max-width: 78%; }
+
+    /* Resident Name */
+    .morador-nome-top {
+        position: absolute;
+        top: 0; right: 0;
+        font-size: 2.4rem;
+        font-weight: 900;
         color: #32A041;
-        border: 2px solid #32A041;
-        border-radius: 8px;
-        padding: 12px 5px;
-        font-size: 14px;
-        font-weight: 600;
-        text-transform: uppercase;
-        transition: all 0.2s ease;
+        padding: 20px 38px 0 0;
+        letter-spacing: -.03em;
+        text-align: right;
+        z-index: 9;
     }
-    div.stButton > button:hover {
-        background-color: #32A041;
-        color: white;
-        transform: scale(1.02);
-        box-shadow: 0 5px 15px rgba(50, 160, 65, 0.4);
+    /* Online/Status */
+    .morador-status-top {
+        position: absolute;
+        top: 0; left: 0;
+        font-size: 1.13rem;
+        font-weight:600;
+        color: #e0e0e0;
+        padding: 20px 0 0 38px;
+        text-align: left;
+        z-index: 9;
     }
 
-    /* --- 5. ÁREA DE CHAT --- */
-    .user-msg { background-color: #1f1f1f; color: #fff; padding: 15px; border-radius: 20px 20px 4px 20px; text-align: right; float: right; clear: both; margin: 5px 0; border: 1px solid #333; max-width: 90%; }
-    .bot-msg { background-color: #f5f5f5; color: #1a1a1a; padding: 15px; border-radius: 20px 20px 20px 4px; text-align: left; float: left; clear: both; margin: 5px 0; border-left: 5px solid #B30000; font-weight: 600; max-width: 90%; }
-
-    /* --- 6. TÍTULOS --- */
-    h1 { font-family: 'Playfair Display', serif !important; font-size: 3.5rem !important; text-align: center; color: #fff; letter-spacing: -1px; margin-top: 10px; }
-    h2 { font-family: 'Playfair Display', serif !important; color: #32A041; text-align: center; font-style: italic; font-size: 2rem !important;}
-    
-    .char-img {
-        border-radius: 12px;
+    .big-img-box {
+        border-radius: 20px;
         border: 2px solid #333;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+        margin-bottom: 0;
+        width: 100%;
+        aspect-ratio: 1/1;
+        object-fit: cover;
+        max-width:370px;
+        max-height:370px;
+        background: #191919;
+        display:block;
     }
-
-    @media only screen and (max-width: 600px) {
-        h1 { font-size: 2.5rem !important; }
-        div.stButton > button { font-size: 18px !important; padding: 15px !important; }
-    }
-
-    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -110,8 +114,6 @@ def setup_ai():
         return None
 
 model = setup_ai()
-print("Modelo carregado:", model)
-
 PERSONAGENS = {
     "PITOCO": {"img": "imagens/pitoco.jpeg", "cor": "#00d2d3", "desc_oculta": "Agroboy Fake"},
     "SAMUEL": {"img": "imagens/samuel.jpeg", "cor": "#eccc68", "desc_oculta": "Rico Marrento"},
@@ -125,27 +127,23 @@ PERSONAGENS = {
     "INDIÃO": {"img": "imagens/indiao.jpeg", "cor": "#576574", "desc_oculta": "Sombra"}
 }
 
-# --- 4. PROMPTS E LÓGICA (AQUI ESTÁ A ATUALIZAÇÃO) ---
 def get_system_prompt(personagem, fase, nivel_estresse):
     modo_estresse = ""
     if nivel_estresse >= 3:
         modo_estresse = "ALERTA DE SISTEMA: O USUÁRIO ESTÁ TE ENCHENDO O SACO. VOCÊ ESTÁ ESTRESSADO/IRRITADO. SEJA CURTO, GROSSO E MANDE ELE SAIR ('VAZA', 'SAI FORA')."
-    
     contexto_caso = ""
     caso_atual = st.session_state.get('caso_atual', {"texto": "", "culpado": ""})
     if fase == "REVELACAO":
         contexto_caso = f"OCORRIDO GRAVE NO QUARTO: '{caso_atual['texto']}'. O Culpado real é {caso_atual['culpado']}. (Não revele nomes diretamente, mas reaja ao crime conforme sua personalidade)."
     else:
         contexto_caso = "FASE SOCIAL: O usuário é um NOVATO (Calouro) chegando no quarto C5. Você ainda não sabe de crime nenhum. Apenas converse, julgue o novato ou tente enturmá-lo."
-
     return f"""
     VOCÊ ESTÁ INTERPRETANDO: {personagem}
     CENÁRIO: Quarto 5 (C5) do Alojamento do Instituto Federal (IF).
     INTERLOCUTOR: Um Calouro/Novato.
     {modo_estresse}
     {contexto_caso}
-
-### 1. REGRAS DE OURO DA TROPA (LORE GERAL)
+    ### 1. REGRAS DE OURO DA TROPA (LORE GERAL)
     - **VOCABULÁRIO DO GRUPO:** Todos se chamam casualmente de "autista", "doente", "homossex", "viado", "corno" ou "retardado". Isso NÃO é ofensa real, é gíria de convivência.
     - **SEGREDOS PÚBLICOS:** Todo mundo sabe os podres de todo mundo. Fofocar sobre os outros é permitido e encorajado.
     - **REGRA DO X-9:** Ninguém dedura o culpado de bandeja. Se você for o culpado, minta ou acuse um inimigo. Se for inocente, zoa o culpado provável.
@@ -210,19 +208,19 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **VIBE:** Político Agro, Chato.
     - **FALA:** Discurso de direita, reclama do Grêmio Estudantil e de "lacração".
     - **AÇÃO:** Faz "pintocóptero" com o Indião. Se acha autoridade.
-
+    
     >>> SE VOCÊ É O [SALDANHA] (O Veterano):
     - **VIBE:** O "Pai" do quarto. Cansado, experiente, degenerado.
     - **FALA:** Gírias de cria ("pode pá", "salve"). Voz da razão (mas uma razão meio torta).
     - **SEGREDOS:** Paga por sexo (e assume: "ossos do ofício").
     - **FUNÇÃO:** Tenta botar ordem na casa, mas acaba rindo da desgraça.
 
-    ### SÓ MITSUKI E SALDANHA USAM "TANKAR". NINGUÉM USA NEM "AMOSTRADINHO", "BORA BILL" OU TERMOS ASSIM "CASCA DE BALA".
+    ### SÓ MITSUKI E SALDANHA USAM "TANKAR".
     ### INSTRUÇÃO FINAL DE FORMATO:
     - Mantenha a resposta curta (estilo papo natural da vida real).
     - Não use frases complexas.
     - Seja engraçado, tóxico ou estranho conforme o personagem.
-    """
+        """
 
 def gerar_caso():
     casos = [
@@ -242,15 +240,12 @@ def avancar_personagem():
     st.session_state.chat_history = []
     st.session_state.msg_no_turno = 0
     st.session_state.contador_conversas += 1
-    
     if st.session_state.fase == 'SOCIAL' and st.session_state.contador_conversas >= 4:
         st.session_state.fase = 'ALERTA_EVENTO'
         st.rerun()
-    
     if st.session_state.fase == 'REVELACAO':
         st.session_state.fase = 'VEREDITO'
         st.rerun()
-
     prox_index = st.session_state.caso_atual['indice_fila'] + 1
     if prox_index < len(PERSONAGENS):
         st.session_state.caso_atual['indice_fila'] = prox_index
@@ -260,7 +255,6 @@ def avancar_personagem():
          st.session_state.fase = 'VEREDITO'
          st.rerun()
 
-# --- 5. ESTADOS ---
 if 'fase' not in st.session_state: st.session_state.fase = 'START'
 if 'caso_atual' not in st.session_state: st.session_state.caso_atual = gerar_caso()
 if 'chat_history' not in st.session_state: st.session_state.chat_history = []
@@ -268,14 +262,10 @@ if 'personagem_atual' not in st.session_state: st.session_state.personagem_atual
 if 'contador_conversas' not in st.session_state: st.session_state.contador_conversas = 0
 if 'msg_no_turno' not in st.session_state: st.session_state.msg_no_turno = 0
 
-# --- 6. INTERFACE ---
-
-# TELA START
 if st.session_state.fase == 'START':
     st.markdown("<h1>TROPA DO C5</h1>", unsafe_allow_html=True)
     st.markdown("<h2>QUEM É O ARROMBADO?</h2>", unsafe_allow_html=True)
     st.write("\n\n")
-    
     c1, c2, c3 = st.columns([1,2,1])
     with c2:
         st.info("Você é o calouro novo. Tente sobreviver ao alojamento.")
@@ -283,7 +273,6 @@ if st.session_state.fase == 'START':
             st.session_state.fase = 'SELECAO_INICIAL'
             st.rerun()
 
-# TELA SELEÇÃO
 elif st.session_state.fase == 'SELECAO_INICIAL':
     st.markdown("<h2>QUEM VOCÊ VAI CUMPRIMENTAR?</h2>", unsafe_allow_html=True)
     cols = st.columns(5)
@@ -298,65 +287,68 @@ elif st.session_state.fase == 'SELECAO_INICIAL':
                 st.session_state.fase = 'SOCIAL'
                 st.rerun()
 
-# TELA CHAT (LAYOUT NOVO LADO A LADO)
 elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
-    
-    # CRIAÇÃO DE COLUNAS LADO A LADO (1/4 Imagem, 3/4 Chat)
-    col_left, col_right = st.columns([1, 3])
-    
-    # --- COLUNA DA ESQUERDA (IMAGEM) ---
+    status = "🟢 Online"
+    if st.session_state.msg_no_turno > 3:
+        status = "⚠️ Estressado"
+    if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user':
+        status = "✍️ Digitando..."
+
+    col_left, col_right = st.columns([1.15, 2.85])
     with col_left:
-        st.image(dados['img'], use_column_width=True)
-        st.markdown(f"<h2>{nome}</h2>", unsafe_allow_html=True)
-        status_placeholder = st.empty()
-        if st.session_state.msg_no_turno > 3:
-            status_placeholder.caption("⚠️ ESTRESSADO")
-        else:
-            status_placeholder.caption("🟢 Online")
-
-    # --- COLUNA DA DIREITA (CHAT SCROLLABLE) ---
+        st.markdown(f"<div style='position:relative;height:418px;'>"
+                    f"<img src='{dados['img']}' class='big-img-box' />"
+                    f"<div class='morador-status-top'>{status}</div>"
+                    f"</div>", unsafe_allow_html=True)
     with col_right:
-        chat_container = st.container(height=500) # Altura fixa com scroll
-        with chat_container:
-            for msg in st.session_state.chat_history:
-                if msg['role'] == 'user':
-                    st.markdown(f"<div class='user-msg'>{msg['content']}</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<div class='bot-msg'>{msg['content']}</div>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="position:relative; min-height:490px;">
+            <div class="morador-nome-top">{nome}</div>
+            <div class="chat-container-scroll">
+                {"".join([f"<div class='user-msg'>{msg['content']}</div>" if msg['role']=="user" else f"<div class='bot-msg'>{msg['content']}</div>" for msg in st.session_state.chat_history])}
+            </div>
+            <div class="chat-input-row">
+                <form method="POST" onsubmit="return false;">
+                  <input id="streamlit-chat-input" name="user_input"
+                      class="chat-input-box"
+                      autocomplete="off"
+                      maxlength="160"
+                      type="text"
+                      placeholder="Mande o papo (ou 'tchau' para sair)..."
+                      style="width:92%;margin-right:6px;">
+                  <button type="submit" style="background:#222;border-radius:8px;padding:0 18px;color:#eee;font-size:1.06rem;border:none;">→</button>
+                </form>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        user_input = st.chat_input("Mande o papo (ou 'tchau' para sair)...")
 
-    # --- INPUT FIXO EMBAIXO ---
-    user_input = st.chat_input("Mande o papo (ou 'tchau' para sair)...")
-
-    if user_input:
-        if user_input.lower() in ['tchau', 'flw', 'vlw', 'vaza', 'sair', 'proximo', 'fui']:
-            avancar_personagem()
-        else:
-            st.session_state.chat_history.append({'role': 'user', 'content': user_input})
-            st.session_state.msg_no_turno += 1
-            status_placeholder.caption(f"✍️ {nome} está digitando...")
-            time.sleep(1) 
-            prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
-            if model is None:
-                resp = "Erro: IA não foi inicializada."
+        if user_input:
+            if user_input.lower() in ['tchau', 'flw', 'vlw', 'vaza', 'sair', 'proximo', 'fui']:
+                avancar_personagem()
             else:
-                try:
-                    print("Enviando mensagem para IA...")
-                    chat = model.start_chat(history=[])
-                    resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
-                except Exception as e:
-                    print("Erro ao enviar mensagem para o modelo:", e)
-                    resp = "..."
-            st.session_state.chat_history.append({'role': 'bot', 'content': resp})
-            st.rerun()
+                st.session_state.chat_history.append({'role': 'user', 'content': user_input})
+                st.session_state.msg_no_turno += 1
+                time.sleep(1)
+                prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
+                if model is None:
+                    resp = "Erro: IA não foi inicializada."
+                else:
+                    try:
+                        chat = model.start_chat(history=[])
+                        resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
+                    except Exception as e:
+                        print("Erro ao enviar mensagem para o modelo:", e)
+                        resp = "..."
+                st.session_state.chat_history.append({'role': 'bot', 'content': resp})
+                st.rerun()
 
-# TELA ALERTA
 elif st.session_state.fase == 'ALERTA_EVENTO':
     st.error("🚨 ALERTA: DEU MERDA NO QUARTO!")
     st.markdown(f"### '{st.session_state.caso_atual['texto']}'")
     st.write("O clima pesou. Você pode pressionar MAIS UM antes de decidir.")
-    
     cols = st.columns(5)
     for i, (nome, dados) in enumerate(PERSONAGENS.items()):
         with cols[i % 5]:
@@ -366,13 +358,10 @@ elif st.session_state.fase == 'ALERTA_EVENTO':
                 st.session_state.fase = 'REVELACAO'
                 st.rerun()
 
-# TELA VEREDITO
 elif st.session_state.fase == 'VEREDITO':
     st.markdown("<h1>QUEM FOI?</h1>", unsafe_allow_html=True)
     st.markdown(f"**OCORRIDO:** {st.session_state.caso_atual['texto']}")
-    
     escolha = st.selectbox("Selecione o Culpado:", list(PERSONAGENS.keys()))
-    
     if st.button("ACUSAR", type="primary"):
         culpado_real = st.session_state.caso_atual['culpado']
         if escolha == culpado_real:
@@ -380,8 +369,6 @@ elif st.session_state.fase == 'VEREDITO':
             st.success(f"ACERTOU! Foi o {culpado_real}!")
         else:
             st.error(f"ERROU! Quem fez foi o {culpado_real}!")
-        
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
-
