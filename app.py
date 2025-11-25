@@ -23,16 +23,16 @@ except:
 
 # --- 2. DADOS DOS PERSONAGENS ---
 PERSONAGENS = {
-    "PITOCO": {"img": "imagens/pitoco.jpg", "desc": "Agroboy Fake, Tóxico e Anão.", "cor": "#32CD32"},
-    "SAMUEL": {"img": "imagens/samuel.jpg", "desc": "Rico, 'Nego Doce', Fala em 3ª pessoa.", "cor": "#FFD700"},
-    "BRYAN": {"img": "imagens/bryan.jpg", "desc": "Gamer chorão, tenta ser cria.", "cor": "#4169E1"},
-    "SALDANHA": {"img": "imagens/saldanha.jpg", "desc": "Veterano, Degenerado, Pai do grupo.", "cor": "#DC143C"},
-    "MITSUKI": {"img": "imagens/mitsuki.jpg", "desc": "Otaku Brainrot, 'sus', desenhista.", "cor": "#FF69B4"},
-    "MOISÉS": {"img": "imagens/moises.jpg", "desc": "Reservado, Explosivo, Odeia o Pitoco.", "cor": "#8A2BE2"},
-    "CAMARADA": {"img": "imagens/camarada.jpg", "desc": "Brainrot Infantil, Medroso, 'Gramara'.", "cor": "#FF4500"},
-    "TIFAEL": {"img": "imagens/tifael.jpg", "desc": "Agro-Coach, Tiozão, 'Jack'.", "cor": "#8B4513"},
-    "JOAQUIM": {"img": "imagens/joaquim.jpg", "desc": "Político Agro, Pintocóptero.", "cor": "#2E8B57"},
-    "INDIÃO": {"img": "imagens/indiao.jpg", "desc": "Sombra do Joaquim, 'Para de manjar'.", "cor": "#A0522D"},
+    "PITOCO": {"img": "imagens/pitoco.jpeg", "desc": "Agroboy Fake, Tóxico e Anão.", "cor": "#32CD32"},
+    "SAMUEL": {"img": "imagens/samuel.jpeg", "desc": "Rico, 'Nego Doce', Fala em 3ª pessoa.", "cor": "#FFD700"},
+    "BRYAN": {"img": "imagens/bryan.jpeg", "desc": "Gamer chorão, tenta ser cria.", "cor": "#4169E1"},
+    "SALDANHA": {"img": "imagens/saldanha.jpeg", "desc": "Veterano, Degenerado, Pai do grupo.", "cor": "#DC143C"},
+    "MITSUKI": {"img": "imagens/mitsuki.jpeg", "desc": "Otaku Brainrot, 'sus', desenhista.", "cor": "#FF69B4"},
+    "MOISÉS": {"img": "imagens/moises.jpeg", "desc": "Reservado, Explosivo, Odeia o Pitoco.", "cor": "#8A2BE2"},
+    "CAMARADA": {"img": "imagens/camarada.jpeg", "desc": "Brainrot Infantil, Medroso, 'Gramara'.", "cor": "#FF4500"},
+    "TIFAEL": {"img": "imagens/tifael.jpeg", "desc": "Agro-Coach, Tiozão, 'Jack'.", "cor": "#8B4513"},
+    "JOAQUIM": {"img": "imagens/joaquim.jpeg", "desc": "Político Agro, Pintocóptero.", "cor": "#2E8B57"},
+    "INDIÃO": {"img": "imagens/indiao.jpeg", "desc": "Sombra do Joaquim, 'Para de manjar'.", "cor": "#A0522D"},
 }
 
 # --- 3. CÉREBRO DA IA (SYSTEM PROMPT) ---
@@ -148,3 +148,4 @@ else:
             st.session_state.caso_atual = gerar_caso()
             st.session_state.historico_chat = []
             st.rerun()
+
