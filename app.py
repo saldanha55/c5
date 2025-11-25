@@ -10,7 +10,35 @@ st.set_page_config(page_title="Mistério no C5", page_icon="🕵️", layout="ce
 api_key = "AIzaSyD7AzNyB2fbAS8AmD0bSxKKXlgl1MZnnUE" 
 
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-pro')
+# FUNÇÃO MÁGICA: Acha o modelo sozinho para evitar erro 404
+@st.cache_resource
+def configurar_modelo_automatico():
+    try:
+        # Pede para o Google listar o que está disponível para essa chave
+        modelos_disponiveis = []
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                modelos_disponiveis.append(m.name)
+        
+        # Tenta pegar o Flash (mais rápido), senão pega o primeiro da lista
+        modelo_escolhido = next((m for m in modelos_disponiveis if 'flash' in m), None)
+        if not modelo_escolhido and modelos_disponiveis:
+            modelo_escolhido = modelos_disponiveis[0]
+            
+        if modelo_escolhido:
+            print(f"Modelo Conectado: {modelo_escolhido}")
+            return genai.GenerativeModel(modelo_escolhido)
+        else:
+            return None
+    except Exception as e:
+        st.error(f"Erro na Chave de API: {e}")
+        return None
+
+model = configurar_modelo_automatico()
+
+if model is None:
+    st.error("🚨 ERRO FATAL: A chave é válida, mas nenhum modelo foi encontrado. Verifique se a API 'Generative Language' está ativada no Google Cloud Console.")
+    st.stop()
 
 # CSS para visual Gamer/Dark
 st.markdown("""
@@ -145,5 +173,6 @@ else:
             st.session_state.caso_atual = gerar_caso()
             st.session_state.historico_chat = []
             st.rerun()
+
 
 
