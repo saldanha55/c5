@@ -138,16 +138,16 @@ model = setup_ai()
 # --- 4. DADOS (ATENÇÃO: CERTIFIQUE-SE QUE A EXTENSÃO DAS IMAGENS ESTÁ CERTA) ---
 # Se suas imagens no github forem .jpg, mude aqui para .jpg!
 PERSONAGENS = {
-    "PITOCO": { "img": "imagens/pitoco.png", "cor": "#00d2d3", "subtitulo": "(Pedro Henrique / Bituca)" },
-    "SAMUEL": { "img": "imagens/samuel.png", "cor": "#eccc68", "subtitulo": "(Banco Central / Miles)" },
-    "BRYAN": { "img": "imagens/bryan.png", "cor": "#54a0ff", "subtitulo": "(Senhor Marra / Brás)" },
-    "SALDANHA": { "img": "imagens/saldanha.png", "cor": "#ff6b6b", "subtitulo": "(O Veterano)" },
-    "MITSUKI": { "img": "imagens/mitsuki.png", "cor": "#ff9ff3", "subtitulo": "(Mete-e-Chupa)" },
-    "MOISÉS": { "img": "imagens/moises.png", "cor": "#9c88ff", "subtitulo": "(O Quieto)" },
-    "CAMARADA": { "img": "imagens/camarada.png", "cor": "#ff9f43", "subtitulo": "(Miguel Arcanjo)" },
-    "TIFAEL": { "img": "imagens/tifael.png", "cor": "#8395a7", "subtitulo": "(Jack / Tio Fael)" },
-    "JOAQUIM": { "img": "imagens/joaquim.png", "cor": "#1dd1a1", "subtitulo": "(Quim)" },
-    "INDIÃO": { "img": "imagens/indiao.png", "cor": "#576574", "subtitulo": "(Doisberto)" }
+    "PITOCO": { "img": "imagens/pitoco.jpeg", "cor": "#00d2d3", "subtitulo": "(Pedro Henrique / Bituca)" },
+    "SAMUEL": { "img": "imagens/samuel.jpeg", "cor": "#eccc68", "subtitulo": "(Banco Central / Miles)" },
+    "BRYAN": { "img": "imagens/bryan.jpeg", "cor": "#54a0ff", "subtitulo": "(Senhor Marra / Brás)" },
+    "SALDANHA": { "img": "imagens/saldanha.jpeg", "cor": "#ff6b6b", "subtitulo": "(O Veterano)" },
+    "MITSUKI": { "img": "imagens/mitsuki.jpeg", "cor": "#ff9ff3", "subtitulo": "(Mete-e-Chupa)" },
+    "MOISÉS": { "img": "imagens/moises.jpeg", "cor": "#9c88ff", "subtitulo": "(O Quieto)" },
+    "CAMARADA": { "img": "imagens/camarada.jpeg", "cor": "#ff9f43", "subtitulo": "(Miguel Arcanjo)" },
+    "TIFAEL": { "img": "imagens/tifael.jpeg", "cor": "#8395a7", "subtitulo": "(Jack / Tio Fael)" },
+    "JOAQUIM": { "img": "imagens/joaquim.jpeg", "cor": "#1dd1a1", "subtitulo": "(Quim)" },
+    "INDIÃO": { "img": "imagens/indiao.jpeg", "cor": "#576574", "subtitulo": "(Doisberto)" }
 }
 
 # --- 5. LÓGICA ---
@@ -307,3 +307,4 @@ elif st.session_state.fase == 'VEREDITO':
         else:
             st.error(f"ERROU! Foi o {st.session_state.caso_atual['culpado']}!")
         if st.button("JOGAR DE NOVO"): st.session_state.clear(); st.rerun()
+
