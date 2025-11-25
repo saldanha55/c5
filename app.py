@@ -7,7 +7,7 @@ from google.api_core import exceptions
 st.set_page_config(page_title="Mistério no C5", page_icon="🕵️", layout="centered")
 
 # COLE SUA CHAVE NOVA ENTRE AS ASPAS ABAIXO:
-api_key = "AIzaSy_SUA_CHAVE_INTEIRA_AQUI" 
+api_key = "AIzaSyD7AzNyB2fbAS8AmD0bSxKKXlgl1MZnnUE" 
 
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-pro')
@@ -145,4 +145,5 @@ else:
             st.session_state.caso_atual = gerar_caso()
             st.session_state.historico_chat = []
             st.rerun()
+
 
