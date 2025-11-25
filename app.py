@@ -268,25 +268,29 @@ elif st.session_state.fase == 'SELECAO_INICIAL':
                 st.session_state.caso_atual['fila'].insert(0, nome)
                 st.session_state.fase = 'SOCIAL'; st.rerun()
 
-# TELA CHAT (CORREÇÃO DO DIGITANDO E FONTE)
+# TELA CHAT (STATUS ENCIMA DA CONVERSA)
 elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
     
-    # Define o status padrão
+    # Lógica de Status
     status_txt = "🟢 Online"
     cor_status = "#32A041"
     if st.session_state.msg_no_turno > 3: 
         status_txt = "⚠️ Estressado"
         cor_status = "#ff4757"
+    if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user':
+        status_txt = "✍️ Digitando..."
+        cor_status = "#eccc68"
 
     col_img, col_chat = st.columns([1, 2.5], gap="large")
     
     with col_img:
+        # Nome e Subtítulo em cima da foto
         st.markdown(f"""
-            <div style="text-align:center; margin-bottom: 15px;">
-                <div class='char-name-title' style='color: {dados['cor']};'>{nome}</div>
-                <div class='char-subtitle'>{dados['subtitulo']}</div>
+            <div style="text-align:center; margin-bottom: 10px;">
+                <div class='char-name-title' style='color: {dados['cor']}; margin-bottom: 0px;'>{nome}</div>
+                <div class='char-subtitle' style='margin-top: 0px;'>{dados['subtitulo']}</div>
             </div>
         """, unsafe_allow_html=True)
         
@@ -295,13 +299,15 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
         except:
             st.error("Imagem não encontrada")
             
-        # --- AQUI ESTÁ O SEGREDO ---
-        # Criamos um container vazio (placeholder) para poder mudar o texto depois
-        status_placeholder = st.empty()
-        # Mostra o status atual (Online)
-        status_placeholder.markdown(f"<div class='status-text' style='color:{cor_status};'>{status_txt}</div>", unsafe_allow_html=True)
-
     with col_chat:
+        # --- STATUS ALINHADO À DIREITA (EM CIMA DO CHAT) ---
+        st.markdown(f"""
+            <div style="text-align: right; margin-bottom: 5px; font-family: 'Montserrat'; font-weight: 600; font-size: 0.9rem; color: {cor_status}; letter-spacing: 1px;">
+                {status_txt}
+            </div>
+        """, unsafe_allow_html=True)
+
+        # Área de Chat
         chat_html = "<div class='chat-scroll-area'>"
         for msg in st.session_state.chat_history:
             if msg['role'] == 'user':
@@ -311,6 +317,7 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
         chat_html += "</div>"
         st.markdown(chat_html, unsafe_allow_html=True)
 
+        # Formulário
         with st.form(key='chat_form', clear_on_submit=True):
             c1, c2 = st.columns([5, 1])
             with c1:
@@ -325,24 +332,28 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
                 st.session_state.chat_history.append({'role': 'user', 'content': user_input})
                 st.session_state.msg_no_turno += 1
                 
-                # --- EFEITO VISUAL ---
-                # Atualiza o placeholder IMEDIATAMENTE para "Digitando..."
-                status_placeholder.markdown(f"<div class='status-text' style='color:#eccc68;'>✍️ Digitando...</div>", unsafe_allow_html=True)
-                time.sleep(1.5) # Tempo para você ler o "Digitando"
-                
-                prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
-                
-                if model:
-                    try:
-                        chat = model.start_chat(history=[])
-                        resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
-                    except Exception as e:
-                        resp = f"❌ Erro IA: {str(e)}"
-                else:
-                    resp = "❌ Erro: IA não conectada."
-                
-                st.session_state.chat_history.append({'role': 'bot', 'content': resp})
-                st.rerun()
+                # Atualiza para "Digitando" visualmente antes da resposta
+                # (O Streamlit vai recarregar a página e mostrar o status "Digitando" definido lá em cima)
+                time.sleep(0.1) 
+                st.rerun() 
+
+    # Lógica de Resposta (Fora do fluxo de renderização para pegar o rerun)
+    if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user':
+        with st.spinner(""): # Spinner invisível só pra segurar
+            time.sleep(1.5) # Tempo pro usuário ler o "Digitando"
+            prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
+            
+            resp = "..."
+            if model:
+                try:
+                    last_user_msg = st.session_state.chat_history[-1]['content']
+                    chat = model.start_chat(history=[])
+                    resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {last_user_msg}").text
+                except Exception as e:
+                    resp = f"❌ Erro IA: {str(e)}"
+            
+            st.session_state.chat_history.append({'role': 'bot', 'content': resp})
+            st.rerun()
                 
 # TELA ALERTA
 elif st.session_state.fase == 'ALERTA_EVENTO':
@@ -383,3 +394,4 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
