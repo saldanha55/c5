@@ -8,86 +8,108 @@ st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="center
 
 # --- DESIGN SYSTEM: INSTITUTO FEDERAL CORE ---
 # Cores do IF: Vermelho (#B30000), Verde (#32A041), Preto/Cinza
+# --- DESIGN SYSTEM: TROPAS DO C5 (MILITARY/TERMINAL STYLE) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Oswald:wght@500;700&display=swap');
+    /* Importando a fonte Black Ops One */
+    @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap');
 
-    /* Fundo Geral */
-    .stApp { background-color: #121212; color: #f1f1f1; font-family: 'Black Ops One', monospace; }
-    
-    /* --- ÁREA DE INPUT (RODAPÉ) --- */
-    /* Isso pinta a faixa fixa lá embaixo de preto */
+    /* --- 1. FONTE GLOBAL (Tudo com a fonte pedida) --- */
+    html, body, [class*="css"], button, input, textarea, div {
+        font-family: 'Black Ops One', cursive !important;
+    }
+
+    /* --- 2. FUNDO E CORES GERAIS --- */
+    .stApp { 
+        background-color: #0d0d0d; /* Preto quase absoluto */
+        color: #e0e0e0; 
+    }
+
+    /* --- 3. BARRA DE DIGITAÇÃO (Estilo Terminal) --- */
+    /* Fundo da área fixa lá embaixo */
     [data-testid="stBottom"] {
         background-color: #000000 !important; 
-        border-top: 2px solid #32A041; /* Uma borda verde IF pra dar estilo */
+        border-top: 3px solid #B30000; /* Linha Vermelha do IF no topo */
         padding-bottom: 20px;
+        padding-top: 10px;
     }
     
-    /* Isso pinta a caixinha de texto em si */
+    /* A caixa de texto em si */
     .stChatInput textarea {
-        background-color: #1e1e1e !important;
-        color: white !important;
-        border: 1px solid #333 !important;
+        background-color: #1a1a1a !important; /* Cinza muito escuro */
+        color: #32A041 !important; /* Texto Verde Hacker */
+        border: 2px solid #32A041 !important; /* Borda Verde */
+        border-radius: 4px !important; /* Cantos levemente quadrados */
+        text-transform: uppercase; /* Tudo maiúsculo pra dar impacto */
     }
-    /* Títulos estilo IF */
+    
+    /* O ícone de enviar (Aviãozinho) */
+    .stChatInput button {
+        color: #B30000 !important; /* Ícone Vermelho */
+    }
+
+    /* --- 4. TÍTULOS --- */
     h1 { 
-        font-family: 'Oswald', sans-serif; 
         color: #f1f1f1;
         background-color: #B30000; /* Vermelho IF */
         padding: 15px;
-        border-radius: 8px;
         text-align: center;
-        text-transform: uppercase;
         border-bottom: 5px solid #32A041; /* Verde IF */
+        text-transform: uppercase;
+        font-size: 3rem !important;
+        letter-spacing: 2px;
     }
-    h2, h3 { color: #32A041; font-family: 'Oswald', sans-serif; }
+    h2, h3 { color: #32A041; letter-spacing: 1.5px; }
 
-    /* Botões Estilo IF */
+    /* --- 5. BOTÕES --- */
     div.stButton > button { 
         width: 100%; 
         background-color: #32A041; 
-        color: white; 
-        border: none; 
-        border-radius: 4px;
-        font-weight: bold;
-        text-transform: uppercase;
-        padding: 12px;
+        color: #000; 
+        border: 2px solid #32A041; 
+        border-radius: 0px; /* Botão quadrado estilo militar */
+        font-size: 1.2rem;
+        padding: 15px;
         transition: 0.3s;
+        text-transform: uppercase;
     }
-    div.stButton > button:hover { background-color: #267d32; border: 1px solid white; }
+    div.stButton > button:hover { 
+        background-color: #000; 
+        color: #32A041; 
+        border: 2px solid #32A041;
+        box-shadow: 0 0 10px #32A041; /* Brilho neon */
+    }
 
-    /* Chat Bubbles */
+    /* --- 6. BALÕES DE CHAT --- */
     .user-msg { 
-        background-color: #2c3e50; 
-        color: white; 
+        background-color: #1e272e; 
+        color: #32A041; /* Texto verde */
         padding: 10px 15px; 
-        border-radius: 15px 15px 0px 15px; 
+        border: 1px solid #32A041;
         margin: 5px 0; 
         text-align: right; 
-        border-right: 4px solid #32A041;
         float: right;
         clear: both;
         max-width: 80%;
+        box-shadow: 4px 4px 0px #000; /* Sombra dura */
     }
     .bot-msg { 
-        background-color: #B30000; /* Vermelho IF */
-        color: white; 
+        background-color: #B30000; 
+        color: #fff; 
         padding: 10px 15px; 
-        border-radius: 15px 15px 15px 0px; 
+        border: 1px solid #fff;
         margin: 5px 0; 
         text-align: left; 
-        border-left: 4px solid #ffffff;
         float: left;
         clear: both;
         max-width: 80%;
+        box-shadow: 4px 4px 0px #000;
     }
-    
-    /* Container de Imagem */
-    .avatar-img { border-radius: 50%; border: 3px solid #32A041; }
     
     /* Esconde menu padrão */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -394,6 +416,7 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
 
 
 
