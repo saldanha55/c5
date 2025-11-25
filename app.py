@@ -127,11 +127,15 @@ genai.configure(api_key=api_key)
 @st.cache_resource
 def setup_ai():
     try:
-        modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        escolhido = next((m for m in modelos if 'flash' in m), models[0] if models else None)
-        return genai.GenerativeModel(escolhido) if escolhido else None
+        # Tenta conectar direto no Flash (mais rápido e barato)
+        return genai.GenerativeModel('gemini-1.5-flash')
     except:
-        return None
+        try:
+            # Se der erro, tenta o Pro
+            return genai.GenerativeModel('gemini-pro')
+        except Exception as e:
+            st.error(f"Erro fatal na IA: {e}")
+            return None
 
 model = setup_ai()
 
@@ -202,12 +206,23 @@ if 'contador_conversas' not in st.session_state: st.session_state.contador_conve
 
 # TELA START
 if st.session_state.fase == 'START':
-    st.markdown("<h1>TROPA DO C5</h1><h2>QUEM É O ARROMBADO?</h2>", unsafe_allow_html=True)
-    st.write("\n")
-    st.markdown("<div class='intro-text'>Bem-vindo ao Alojamento. Você é o novato. Descubra quem fez a merda da vez.</div>", unsafe_allow_html=True)
+    st.markdown("<br><br>", unsafe_allow_html=True) # Espaço extra no topo
+    st.markdown("<h1>TROPA DO C5</h1>", unsafe_allow_html=True)
+    st.markdown("<h2>QUEM É O ARROMBADO?</h2>", unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div style='text-align: center; color: #ccc; font-size: 1.2rem; margin: 30px auto; max-width: 600px; line-height: 1.6;'>
+        Bem-vindo ao Alojamento do IF. Você é o calouro novo no pedaço.<br>
+        Venha conhecer os moradores, entender a dinâmica do quarto e, acima de tudo...<br>
+        <b>descobrir quem fez a merda da vez.</b>
+    </div>
+    """, unsafe_allow_html=True)
+    
     c1, c2, c3 = st.columns([1, 2, 1])
     with c2:
-        if st.button("ENTRAR NO QUARTO"): st.session_state.fase = 'SELECAO_INICIAL'; st.rerun()
+        if st.button("ENTRAR NO QUARTO"):
+            st.session_state.fase = 'SELECAO_INICIAL'
+            st.rerun()
 
 # TELA SELEÇÃO
 elif st.session_state.fase == 'SELECAO_INICIAL':
@@ -223,35 +238,44 @@ elif st.session_state.fase == 'SELECAO_INICIAL':
                 st.session_state.caso_atual['fila'].insert(0, nome)
                 st.session_state.fase = 'SOCIAL'; st.rerun()
 
-# TELA CHAT (LAYOUT NOVO SEM BARRA BRANCA)
+# TELA CHAT (LAYOUT CORRIGIDO: NOME NA ESQUERDA)
 elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
     
     status_txt = "🟢 Online"
     cor_status = "#32A041"
-    if st.session_state.msg_no_turno > 3: status_txt = "⚠️ Estressado"; cor_status = "#ff4757"
-    if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user': status_txt = "✍️ Digitando..."; cor_status = "#eccc68"
+    if st.session_state.msg_no_turno > 3: 
+        status_txt = "⚠️ Estressado"
+        cor_status = "#ff4757"
+    if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user':
+        status_txt = "✍️ Digitando..."
+        cor_status = "#eccc68"
 
-    col_img, col_chat = st.columns([1, 2.5], gap="large")
+    # Layout: Esquerda (Perfil) | Direita (Chat)
+    col_img, col_chat = st.columns([1, 3], gap="medium")
     
+    # --- COLUNA DA ESQUERDA: PERFIL COMPLETO ---
     with col_img:
-        try: st.image(dados['img'], use_container_width=True)
-        except: st.error("Erro IMG")
-    
-    with col_chat:
-        # Header do Chat
+        # Nome e Subtitulo AGORA EM CIMA DA FOTO
         st.markdown(f"""
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:10px;">
-                <div>
-                    <div class='char-name-title' style='color: {dados['cor']};'>{nome}</div>
-                    <div class='char-subtitle'>{dados['subtitulo']}</div>
-                </div>
-                <div class='status-text' style='color: {cor_status};'>{status_txt}</div>
+            <div style="text-align: center; margin-bottom: 10px;">
+                <div style='font-family: "Playfair Display"; font-size: 2.5rem; font-weight: 700; color: {dados['cor']}; line-height: 1;'>{nome}</div>
+                <div style='font-size: 0.85rem; color: #888; font-style: italic;'>{dados['subtitulo']}</div>
             </div>
         """, unsafe_allow_html=True)
+        
+        # Imagem
+        try:
+            st.image(dados['img'], use_container_width=True)
+        except:
+            st.error("Erro Img")
+            
+        # Status embaixo da foto
+        st.markdown(f"<div style='text-align:center; color:{cor_status}; font-weight:bold; margin-top:5px; letter-spacing:1px;'>{status_txt}</div>", unsafe_allow_html=True)
 
-        # Chat Scroll
+    # --- COLUNA DA DIREITA: APENAS CHAT ---
+    with col_chat:
         chat_html = "<div class='chat-scroll-area'>"
         for msg in st.session_state.chat_history:
             if msg['role'] == 'user':
@@ -261,7 +285,7 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
         chat_html += "</div>"
         st.markdown(chat_html, unsafe_allow_html=True)
 
-        # Formulário de Envio (Input + Botão)
+        # Formulário
         with st.form(key='chat_form', clear_on_submit=True):
             c1, c2 = st.columns([5, 1])
             with c1:
@@ -277,14 +301,19 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
                 st.session_state.msg_no_turno += 1
                 
                 prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
-                try:
-                    chat = model.start_chat(history=[])
-                    resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
-                except Exception as e:
-                    resp = f"Erro IA: {e}"
+                
+                # --- CORREÇÃO DO ERRO 'NONE' ---
+                if model:
+                    try:
+                        chat = model.start_chat(history=[])
+                        resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
+                    except Exception as e:
+                        resp = f"❌ Erro IA: {e}"
+                else:
+                    resp = "❌ Erro: IA não conectada. Verifique a chave API."
+                
                 st.session_state.chat_history.append({'role': 'bot', 'content': resp})
                 st.rerun()
-
 # TELA ALERTA
 elif st.session_state.fase == 'ALERTA_EVENTO':
     st.error("🚨 ALERTA: DEU MERDA NO QUARTO!")
@@ -307,4 +336,5 @@ elif st.session_state.fase == 'VEREDITO':
         else:
             st.error(f"ERROU! Foi o {st.session_state.caso_atual['culpado']}!")
         if st.button("JOGAR DE NOVO"): st.session_state.clear(); st.rerun()
+
 
