@@ -286,27 +286,29 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
     
-    # Header
+    # Header com Layout de Colunas
     col_img, col_txt = st.columns([1, 4])
+    
     with col_img:
         st.image(dados['img'], use_container_width=True)
+    
     with col_txt:
         st.markdown(f"## {nome}")
+        
+        # --- AQUI ESTÁ O TRUQUE DO STATUS ---
+        # Criamos um "espaço vazio" (placeholder) para poder mudar o texto depois
+        status_placeholder = st.empty()
+        
+        # Lógica inicial do status
         if st.session_state.msg_no_turno > 3:
-            st.caption("⚠️ ESTRESSADO: Melhor sair logo.")
+            status_placeholder.caption("⚠️ ESTRESSADO: Melhor sair logo.")
         else:
-            st.caption("🟢 Online no quarto")
+            status_placeholder.caption("🟢 Online")
 
-    # 3. Animação de Loading (Tipo Gemini)
-            with st.spinner(f"{nome} está digitando..."):
-                # Pequeno delay pra dar sensação de pensamento
-                time.sleep(0.5) 
-
-    # ÁREA DE CHAT COM SCROLL (Mágica do Streamlit Container)
-    chat_container = st.container(height=300) # Define altura fixa com scroll
+    # ÁREA DE CHAT COM SCROLL
+    chat_container = st.container(height=400)
     
     with chat_container:
-        # Exibe histórico
         for msg in st.session_state.chat_history:
             if msg['role'] == 'user':
                 st.markdown(f"<div class='user-msg'>{msg['content']}</div>", unsafe_allow_html=True)
@@ -318,21 +320,28 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
 
     if user_input:
         # 1. Checa Saída
-        if user_input.lower() in ['tchau', 'flw', 'vaza', 'sair', 'proximo', 'vlw', 'fui']:
+        if user_input.lower() in ['tchau', 'flw', 'vaza', 'sair', 'proximo', 'fui']:
             avancar_personagem()
         else:
-            # 2. Exibe msg do usuário
+            # 2. Exibe msg do usuário imediatamente
             st.session_state.chat_history.append({'role': 'user', 'content': user_input})
             st.session_state.msg_no_turno += 1
-                
-                # Gera Resposta IA
-                prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
-                try:
-                    chat = model.start_chat(history=[])
-                    resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
-                except:
-                    resp = "..."
-                
+            
+            # --- EFEITO VISUAL DE DIGITANDO ---
+            # Atualizamos aquele espaço vazio lá de cima
+            status_placeholder.caption(f"✍️ {nome} está digitando...")
+            
+            # Pequeno delay para dar tempo de ver o status mudando
+            time.sleep(1.5) 
+            
+            # 3. Gera Resposta IA
+            prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
+            try:
+                chat = model.start_chat(history=[])
+                resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
+            except:
+                resp = "..."
+            
             # 4. Salva e Atualiza
             st.session_state.chat_history.append({'role': 'bot', 'content': resp})
             st.rerun()
@@ -371,5 +380,6 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
 
 
