@@ -78,7 +78,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- 2. CONEXÃO COM A IA ---
-api_key = "AIzaSy_SUA_CHAVE_AQUI" # <--- COLE A CHAVE AQUI SE RODAR LOCAL
+api_key = "AIzaSyD7AzNyB2fbAS8AmD0bSxKKXlgl1MZnnUE" # <--- COLE A CHAVE AQUI SE RODAR LOCAL
 if "GOOGLE_API_KEY" in st.secrets:
     api_key = st.secrets["GOOGLE_API_KEY"]
 
@@ -369,3 +369,4 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
