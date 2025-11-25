@@ -561,7 +561,7 @@ elif st.session_state.fase == 'VEREDITO':
     
     # Recupera o caso (com segurança contra erros de estado)
     texto_caso = st.session_state.caso_atual.get('texto', 'Erro ao carregar caso')
-    st.markdown(f"<div style='text-align:center; margin-bottom:20px; font-size:1.2rem;'>**OCORRIDO:** {texto_caso}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align:center; margin-bottom:20px; font-size:1.2rem;'>OCORRIDO: {texto_caso}</div>", unsafe_allow_html=True)
     
     # Seletor
     escolha = st.selectbox("Selecione o Culpado:", list(PERSONAGENS.keys()))
@@ -598,6 +598,7 @@ elif st.session_state.fase == 'VEREDITO':
             st.session_state.clear()
             
         st.button("🔄 JOGAR DE NOVO", on_click=reset_game, type="secondary", use_container_width=True)
+
 
 
 
