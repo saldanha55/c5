@@ -358,33 +358,28 @@ elif st.session_state.fase == 'ALERTA_EVENTO':
 # TELA VEREDITO
 elif st.session_state.fase == 'VEREDITO':
     st.markdown("<h1 class='serif-h1'>QUEM FOI?</h1>", unsafe_allow_html=True)
-    st.markdown(f"**OCORRIDO:** {st.session_state.caso_atual['texto']}")
+    st.markdown(f"<div style='text-align:center; margin-bottom:20px; font-size:1.2rem;'>**OCORRIDO:** {st.session_state.caso_atual['texto']}</div>", unsafe_allow_html=True)
     
+    # Caixa de seleção
     escolha = st.selectbox("Selecione o Culpado:", list(PERSONAGENS.keys()))
     
-    # Botão de Acusar
+    # --- IMAGEM DO SUSPEITO CENTRALIZADA ---
+    c1, c2, c3 = st.columns([1, 1, 1])
+    with c2:
+        try:
+            # Mostra a foto do escolhido
+            st.image(PERSONAGENS[escolha]['img'], use_container_width=True)
+        except:
+            st.error("Erro na imagem")
+    # ---------------------------------------
+
     if st.button("ACUSAR", type="primary"):
-        st.session_state.game_over = True
-        st.session_state.palpite_final = escolha
-    
-    # Se o jogo acabou, mostra o resultado e o botão de reiniciar
-    if st.session_state.get('game_over'):
-        culpado_real = st.session_state.caso_atual['culpado']
-        palpite = st.session_state.palpite_final
-        
-        if palpite == culpado_real:
+        if escolha == st.session_state.caso_atual['culpado']:
             st.balloons()
-            st.success(f"ACERTOU! O C5 está salvo. Foi o {culpado_real}!")
+            st.success("ACERTOU! O C5 está salvo.")
         else:
-            st.error(f"ERROU! Quem fez foi o {culpado_real}!")
+            st.error(f"ERROU! Foi o {st.session_state.caso_atual['culpado']}!")
             
-        st.write("\n")
-        
-        # Botão de Reiniciar (Agora fora do aninhamento)
-        if st.button("🔄 JOGAR DE NOVO"):
-            st.session_state.clear() # Limpa tudo
-            st.rerun() # Recarrega a página do zero
-
-
-
-
+        if st.button("JOGAR DE NOVO"):
+            st.session_state.clear()
+            st.rerun()
