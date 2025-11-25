@@ -3,6 +3,7 @@ import random
 import time
 import os
 import google.generativeai as genai
+import json
 
 # --- 1. CONFIGURAÇÃO INICIAL ---
 st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="wide")
@@ -303,10 +304,62 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - Não use frases complexas.
     - Seja engraçado, tóxico ou estranho conforme o personagem.
     """
-def gerar_caso():
-    casos = ["Calcinha no filtro", "Sumiram 50 reais", "Desenho na porta", "Vaso entupido", "Galinha no quarto"]
-    return {"texto": random.choice(casos), "culpado": random.choice(list(PERSONAGENS.keys()))}
+def gerar_caso_ia():
+    # Resumo das personalidades para o Game Master (IA) decidir
+    prompt_gm = """
+    Você é o Game Master de um RPG escolar. Crie um "ocorrido" (mistério engraçado/caótico) no alojamento C5.
+    
+    PERFIS DOS SUSPEITOS:
+    - PITOCO: Tóxico, boca suja, mente que pega mulher. (Crimes típicos: ofender alguém, quebrar algo e esconder).
+    - SAMUEL: Rico, ostenta, fala em 3ª pessoa. (Crimes típicos: gastar dinheiro irresponsável, bagunça com perfumes/roupas caras).
+    - BRYAN: Gamer viciado, chorão. (Crimes típicos: gritar de madrugada jogando, perder a hora, rage quit).
+    - SALDANHA: Veterano, degenerado. (Crimes típicos: trazer gente estranha, sumir na farra).
+    - MITSUKI: Otaku estranho, 'sus'. (Crimes típicos: gemer alto, desenhar hentai em lugar público, coisas cringe).
+    - MOISÉS: Quieto mas explosivo. (Crimes típicos: vingança silenciosa, surtar e quebrar algo).
+    - CAMARADA: Infantil, brainrot. (Crimes típicos: quebrar coisas sem querer brincando, sujeira de criança).
+    - TIFAEL: Vendedor de curso, pão duro. (Crimes típicos: tentar vender algo proibido, sovinice).
+    - JOAQUIM: Político chato. (Crimes típicos: criar regras chatas, tramar contra o grêmio).
+    - INDIÃO: Sombra do Joaquim, bobo. (Crimes típicos: participar das loucuras do Joaquim).
 
+    SUA MISSÃO:
+    1. Invente uma situação curta (máx 15 palavras) que aconteceu no quarto.
+    2. Escolha o culpado mais LÓGICO baseado na personalidade.
+    
+    RETORNE APENAS UM JSON:
+    {
+        "texto": "Descrição do ocorrido",
+        "culpado": "NOME_EXATO_DO_PERSONAGEM_EM_MAIUSCULO"
+    }
+    """
+    
+    # Fallback (Caso a IA falhe ou esteja sem internet)
+    backup = {
+        "texto": "Alguém entupiu a privada com uma meia.",
+        "culpado": random.choice(list(PERSONAGENS.keys()))
+    }
+
+    if model:
+        try:
+            # Temperatura alta para criatividade
+            response = model.generate_content(prompt_gm, generation_config=genai.types.GenerationConfig(temperature=0.8))
+            
+            # Limpa a resposta para garantir que é JSON puro
+            txt = response.text.replace("```json", "").replace("```", "").strip()
+            dados = json.loads(txt)
+            
+            # Validação: O culpado existe na nossa lista?
+            if dados['culpado'] in PERSONAGENS:
+                return dados
+            else:
+                # Se a IA alucinar um nome, pega o backup mas mantendo o texto gerado se der
+                backup['texto'] = dados.get('texto', backup['texto'])
+                return backup
+        except Exception as e:
+            print(f"Erro ao gerar caso: {e}")
+            return backup
+    
+    return backup
+    
 def avancar_personagem():
     st.session_state.chat_history = []
     st.session_state.msg_no_turno = 0
@@ -322,19 +375,39 @@ def avancar_personagem():
     else:
         st.session_state.fase = 'VEREDITO'; st.rerun()
 
-# --- 6. ESTADOS ---
+# --- 6. ESTADOS (INICIALIZAÇÃO COMPLETA) ---
 if 'fase' not in st.session_state: st.session_state.fase = 'START'
-if 'caso_atual' not in st.session_state: 
-    culpado = random.choice(list(PERSONAGENS.keys()))
-    fila = list(PERSONAGENS.keys()); random.shuffle(fila)
-    st.session_state.caso_atual = {"texto": "", "culpado": culpado, "fila": fila, "indice_fila": 0}
-    st.session_state.caso_atual = gerar_caso()
-    st.session_state.caso_atual['fila'] = fila
-    st.session_state.caso_atual['indice_fila'] = 0
 
+# 1. GERAÇÃO DO CASO (Lógica da IA)
+if 'caso_atual' not in st.session_state: 
+    # Chama a IA para criar o caso
+    caso_gerado = gerar_caso_ia()
+    
+    # Define o culpado
+    culpado = caso_gerado['culpado']
+    
+    # Prepara a fila de interrogatório (aleatória)
+    fila = list(PERSONAGENS.keys())
+    
+    # Garante que o culpado não seja o primeiro (pra dar graça)
+    if culpado in fila: fila.remove(culpado)
+    random.shuffle(fila)
+    fila.append(culpado) # Põe o culpado pro final
+    random.shuffle(fila) # Embaralha tudo de novo pra garantir
+    
+    # Salva no estado
+    st.session_state.caso_atual = {
+        "texto": caso_gerado['texto'],
+        "culpado": culpado,
+        "fila": fila,
+        "indice_fila": 0
+    }
+
+# 2. VARIÁVEIS DE CONTROLE (Isso que faltava)
 if 'chat_history' not in st.session_state: st.session_state.chat_history = []
-if 'msg_no_turno' not in st.session_state: st.session_state.msg_no_turno = 0
-if 'contador_conversas' not in st.session_state: st.session_state.contador_conversas = 0
+if 'personagem_atual' not in st.session_state: st.session_state.personagem_atual = None
+if 'contador_conversas' not in st.session_state: st.session_state.contador_conversas = 0 # Conta quantos já entrevistou
+if 'msg_no_turno' not in st.session_state: st.session_state.msg_no_turno = 0 # Nível de stress atual
 
 # --- 7. INTERFACE ---
 
@@ -500,5 +573,6 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
 
 
