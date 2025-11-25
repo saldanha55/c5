@@ -7,7 +7,7 @@ import google.generativeai as genai
 # --- 1. CONFIGURAÇÃO INICIAL ---
 st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="wide")
 
-# --- 2. DESIGN SYSTEM (CSS FINAL - TELA INICIAL PIKA) ---
+# --- 2. DESIGN SYSTEM (CSS FINAL - BOTÃO TRANSPARENTE) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
@@ -29,7 +29,7 @@ st.markdown("""
         text-align: center; 
         color: #fff; 
         margin-bottom: 0; 
-        text-shadow: 0 0 20px rgba(255,255,255,0.2); /* Brilho no título */
+        text-shadow: 0 0 20px rgba(255,255,255,0.2);
     }
     h2 { 
         font-family: 'Playfair Display', serif !important; 
@@ -41,28 +41,28 @@ st.markdown("""
         margin-bottom: 40px;
     }
 
-    /* --- O CARD DA SINOPSE (ESTILO VERDE/DARK) --- */
+    /* --- O CARD DA SINOPSE --- */
     .intro-card {
-        background-color: #0e110f; /* Fundo levemente esverdeado/escuro */
-        border: 2px solid #32A041; /* Borda Verde Neon */
+        background-color: #0e110f;
+        border: 1px solid #32A041;
         border-radius: 15px;
         padding: 30px;
         text-align: center;
         font-size: 1.1rem;
         line-height: 1.8;
         color: #ccc;
-        box-shadow: 0 0 30px rgba(50, 160, 65, 0.15); /* Glow verde em volta */
-        margin: 0 auto 30px auto;
+        box-shadow: 0 0 40px rgba(50, 160, 65, 0.1);
+        margin: 0 auto 40px auto;
         max-width: 700px;
     }
     .highlight { color: #fff; font-weight: 700; }
 
-    /* --- BOTÃO SÓLIDO (PREENCHIDO) --- */
+    /* --- BOTÃO TRANSPARENTE (OUTLINE) --- */
     div.stButton > button {
         width: 100%;
-        background-color: #32A041 !important; /* Verde Sólido */
-        color: #ffffff !important; /* Texto Branco */
-        border: none !important;
+        background-color: transparent !important; /* Fundo Transparente */
+        color: #32A041 !important; /* Texto Verde */
+        border: 2px solid #32A041 !important; /* Borda Verde */
         border-radius: 8px;
         padding: 18px 24px;
         font-size: 18px;
@@ -70,27 +70,27 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 2px;
         transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     }
     
     div.stButton > button:hover {
-        background-color: #267d32 !important; /* Verde mais escuro no hover */
-        transform: translateY(-3px) scale(1.01);
-        box-shadow: 0 10px 25px rgba(50, 160, 65, 0.4); /* Brilho intenso */
+        background-color: #32A041 !important; /* Preenche de Verde no Hover */
+        color: #000 !important; /* Texto fica preto */
+        transform: scale(1.02);
+        box-shadow: 0 0 30px rgba(50, 160, 65, 0.6); /* Brilho Neon Forte */
     }
 
-    /* --- RESTO DO CHAT (MANTIDO IGUAL) --- */
+    /* --- RESTO DO CHAT --- */
     /* Input */
     [data-testid="stBottom"] { background-color: #050505 !important; border-top: 1px solid #222; padding-top: 1rem; padding-bottom: 1rem; }
     div[data-testid="stTextInput"] input { background-color: #000 !important; color: #fff !important; border: 1px solid #333 !important; border-radius: 8px !important; padding: 15px !important; }
     div[data-testid="stTextInput"] input:focus { border: 1px solid #32A041 !important; box-shadow: 0 0 10px rgba(50, 160, 65, 0.2) !important; }
     div[data-testid="stTextInput"] label { display: none; }
     
-    /* Botão Enviar Pequeno */
-    div[data-testid="stFormSubmitButton"] button { height: 52px; margin-top: 0px; background-color: #1f1f1f !important; border: 1px solid #333 !important; color: #32A041 !important; }
-    div[data-testid="stFormSubmitButton"] button:hover { background-color: #32A041 !important; color: #fff !important; }
+    /* Botão Enviar Pequeno (Chat) */
+    div[data-testid="stFormSubmitButton"] button { height: 52px; margin-top: 0px; border: 1px solid #333 !important; background-color: #1f1f1f !important; color: #fff !important; }
+    div[data-testid="stFormSubmitButton"] button:hover { background-color: #32A041 !important; border-color: #32A041 !important; color: #000 !important; }
 
-    /* Chat Layout */
+    /* Layout */
     .char-name-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; margin: 0; line-height: 1; text-align: center; }
     .char-subtitle { font-size: 0.85rem; color: #888; font-style: italic; margin-top: 5px; text-align: center; }
     .status-text { text-align: center; font-weight: 600; font-size: 0.9rem; margin-top: 10px; letter-spacing: 1px; }
@@ -231,16 +231,17 @@ if st.session_state.fase == 'START':
     st.markdown("<h1>TROPA DO C5</h1>", unsafe_allow_html=True)
     st.markdown("<h2>QUEM É O ARROMBADO?</h2>", unsafe_allow_html=True)
     
-    # O Card Verde (Estilo Pika)
+    # Card Verde
     st.markdown("""
     <div class="intro-card">
-        Bem-vindo ao Alojamento do IF. Você é o <span class="highlight">gabiru novo</span> no pedaço.<br><br>
+        Bem-vindo ao Alojamento do IF. Você é o <span class="highlight">calouro novo</span> no pedaço.<br><br>
         Venha conhecer os moradores, entender a dinâmica caótica do quarto e, acima de tudo...<br>
         <span class="highlight" style="font-size: 1.2rem; color: #fff; text-decoration: underline decoration-color: #32A041;">descobrir quem fez a merda da vez.</span>
     </div>
     """, unsafe_allow_html=True)
     
-    c1, c2, c3 = st.columns([1, 2, 1])
+    # Centralização do Botão (Colunas ajustadas)
+    c1, c2, c3 = st.columns([1, 0.8, 1]) 
     with c2:
         if st.button("ENTRAR NO QUARTO"):
             st.session_state.fase = 'SELECAO_INICIAL'
@@ -376,5 +377,6 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("🔄 JOGAR DE NOVO"):
             st.session_state.clear() # Limpa tudo
             st.rerun() # Recarrega a página do zero
+
 
 
