@@ -103,7 +103,8 @@ def setup_ai():
         modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
         escolhido = next((m for m in modelos if 'flash' in m), modelos[0] if modelos else None)
         return genai.GenerativeModel(escolhido) if escolhido else None
-    except:
+    except Exception as e:
+        print("Erro no setup_ai:", e)
         return None
 
 model = setup_ai()
@@ -119,6 +120,7 @@ PERSONAGENS = {
     "TIFAEL": {"img": "imagens/tifael.jpeg", "cor": "#8395a7", "desc_oculta": "Tiozão"},
     "JOAQUIM": {"img": "imagens/joaquim.jpeg", "cor": "#1dd1a1", "desc_oculta": "Político"},
     "INDIÃO": {"img": "imagens/indiao.jpeg", "cor": "#576574", "desc_oculta": "Sombra"}
+}
 
 # --- 4. PROMPTS E LÓGICA (AQUI ESTÁ A ATUALIZAÇÃO) ---
 def get_system_prompt(personagem, fase, nivel_estresse):
@@ -127,8 +129,9 @@ def get_system_prompt(personagem, fase, nivel_estresse):
         modo_estresse = "ALERTA DE SISTEMA: O USUÁRIO ESTÁ TE ENCHENDO O SACO. VOCÊ ESTÁ ESTRESSADO/IRRITADO. SEJA CURTO, GROSSO E MANDE ELE SAIR ('VAZA', 'SAI FORA')."
     
     contexto_caso = ""
+    caso_atual = st.session_state.get('caso_atual', {"texto": "", "culpado": ""})
     if fase == "REVELACAO":
-        contexto_caso = f"OCORRIDO GRAVE NO QUARTO: '{st.session_state.caso_atual['texto']}'. O Culpado real é {st.session_state.caso_atual['culpado']}. (Não revele nomes diretamente, mas reaja ao crime conforme sua personalidade)."
+        contexto_caso = f"OCORRIDO GRAVE NO QUARTO: '{caso_atual['texto']}'. O Culpado real é {caso_atual['culpado']}. (Não revele nomes diretamente, mas reaja ao crime conforme sua personalidade)."
     else:
         contexto_caso = "FASE SOCIAL: O usuário é um NOVATO (Calouro) chegando no quarto C5. Você ainda não sabe de crime nenhum. Apenas converse, julgue o novato ou tente enturmá-lo."
 
@@ -210,7 +213,6 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **FALA:** Gírias de cria ("pode pá", "salve"). Voz da razão (mas uma razão meio torta).
     - **SEGREDOS:** Paga por sexo (e assume: "ossos do ofício").
     - **FUNÇÃO:** Tenta botar ordem na casa, mas acaba rindo da desgraça.
-
 
     ### SÓ MITSUKI E SALDANHA USAM "TANKAR".
     ### INSTRUÇÃO FINAL DE FORMATO:
@@ -337,7 +339,8 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
             try:
                 chat = model.start_chat(history=[])
                 resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
-            except:
+            except Exception as e:
+                print("Erro ao enviar mensagem para o modelo:", e)
                 resp = "..."
             
             st.session_state.chat_history.append({'role': 'bot', 'content': resp})
@@ -376,4 +379,3 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
-
