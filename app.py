@@ -160,31 +160,31 @@ st.markdown("""
 PERSONAGENS = {
     "PITOCO": {
         "img": "imagens/pitoco.jpeg", "cor": "#00d2d3", 
-        "subtitulo": "(Pedro Henrique / Bituca / Bola de Neve)"
+        "subtitulo": "(Pedro Henrique / Bituca)"
     },
     "SAMUEL": {
         "img": "imagens/samuel.jpeg", "cor": "#eccc68", 
-        "subtitulo": "(Banco Central / Miles)"
+        "subtitulo": "(Banco Central / Miles / Central)"
     },
     "BRYAN": {
         "img": "imagens/bryan.jpeg", "cor": "#54a0ff", 
-        "subtitulo": "(Senhor Marra / Brás / NucitaBig)"
+        "subtitulo": "(Senhor Marra / Brás)"
     },
     "SALDANHA": {
         "img": "imagens/saldanha.jpeg", "cor": "#ff6b6b", 
-        "subtitulo": "(O Veterano / Pai do Grupo)"
+        "subtitulo": "(O T.A.)"
     },
     "MITSUKI": {
         "img": "imagens/mitsuki.jpeg", "cor": "#ff9ff3", 
-        "subtitulo": "(Pedro Alvarenga / Mete-e-Chupa)"
+        "subtitulo": "(Pedro Alvarenga / Mete-e-Chupa / Met's and Chup's)"
     },
     "MOISÉS": {
         "img": "imagens/moises.jpeg", "cor": "#9c88ff", 
-        "subtitulo": "(O Explosivo / Tímido)"
+        "subtitulo": "(O quieto)"
     },
     "CAMARADA": {
         "img": "imagens/camarada.jpeg", "cor": "#ff9f43", 
-        "subtitulo": "(Miguel Arcanjo / Oof)"
+        "subtitulo": "(Miguel Arcanjo)"
     },
     "TIFAEL": {
         "img": "imagens/tifael.jpeg", "cor": "#8395a7", 
@@ -192,7 +192,7 @@ PERSONAGENS = {
     },
     "JOAQUIM": {
         "img": "imagens/joaquim.jpeg", "cor": "#1dd1a1", 
-        "subtitulo": "(Quim / Vice-Presida)"
+        "subtitulo": "(Quim)"
     },
     "INDIÃO": {
         "img": "imagens/indiao.jpeg", "cor": "#576574", 
@@ -488,3 +488,4 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
