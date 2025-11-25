@@ -3,145 +3,97 @@ import random
 import time
 import google.generativeai as genai
 
-# --- 1. CONFIGURAÇÃO VISUAL ---
-st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="centered")
+# --- 1. CONFIGURAÇÃO VISUAL E START ---
+st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="wide")
 
-# --- DESIGN SYSTEM: PREMIUM EDITORIAL (IF PRO) ---
+# --- DESIGN SYSTEM: PREMIUM EDITORIAL (DARK MODE) ---
 st.markdown("""
 <style>
-    /* 1. IMPORTANDO FONTES (Mantendo as que você curtiu) */
+    /* 1. IMPORTANDO FONTES */
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
 
-    /* --- 2. CONFIGURAÇÃO GERAL E FUNDO --- */
-    html, body, [class*="css"], div, input, textarea {
-        font-family: 'Montserrat', sans-serif !important;
-    }
+    /* --- 2. GERAL --- */
+    html, body, [class*="css"], div, input, textarea { font-family: 'Montserrat', sans-serif !important; }
     
     .stApp {
-        /* Fundo Cinza Profundo com micro-padrão de pontos (Grid sutil) */
         background-color: #0a0a0a;
         background-image: radial-gradient(#222 1px, transparent 1px);
         background-size: 20px 20px;
         color: #e0e0e0;
     }
 
-    /* --- 3. TÍTULOS (Estilo "Grand") --- */
-    h1 {
-        font-family: 'Playfair Display', serif !important;
-        font-weight: 700;
-        font-size: 3.5rem !important;
-        text-align: center;
-        color: #ffffff;
-        background: transparent !important; /* Removemos o fundo vermelho */
-        margin-top: 20px;
-        margin-bottom: 5px;
-        letter-spacing: -1px;
-        text-shadow: 0px 4px 10px rgba(0,0,0,0.8);
-    }
-    
-    h2, h3 {
-        font-family: 'Playfair Display', serif !important;
-        text-align: center;
-        font-weight: 400;
-        font-style: italic;
-        color: #32A041; /* Verde IF discreto */
-        margin-top: 0px;
-    }
-
-    /* --- 4. ÁREA DE CHAT (Visual Limpo) --- */
-    
-    /* Mensagem do Usuário (Dark minimalista) */
-    .user-msg {
-        background-color: #1f1f1f;
-        color: #ffffff;
-        padding: 15px 20px;
-        border-radius: 20px 20px 4px 20px;
-        margin: 10px 0;
-        text-align: right;
-        float: right;
-        clear: both;
-        max-width: 80%;
-        border: 1px solid #333;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    /* Mensagem do Bot (Estilo Cartão Editorial) */
-    /* Fundo CLARO para aceitar o detalhe vermelho com elegância */
-    .bot-msg {
-        background-color: #f5f5f5; 
-        color: #1a1a1a; /* Texto escuro para leitura perfeita */
-        padding: 18px 22px;
-        border-radius: 20px 20px 20px 4px;
-        margin: 10px 0;
-        text-align: left;
-        float: left;
-        clear: both;
-        max-width: 80%;
-        border-left: 5px solid #B30000; /* O Vermelho IF entra aqui, elegante */
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        font-weight: 500;
-        font-size: 15px;
-    }
-
-    /* --- 5. INPUT FIXO (Moderno e Flutuante) --- */
+    /* --- 3. INPUT (TUDO PRETO) --- */
     [data-testid="stBottom"] {
-        background: linear-gradient(to top, #0a0a0a 90%, transparent 100%);
+        background-color: #0a0a0a !important;
+        border-top: 1px solid #333;
         padding-bottom: 30px;
         padding-top: 20px;
-        border: none;
     }
 
     .stChatInput textarea {
-        background-color: #141414 !important;
-        color: #fff !important;
-        border: 1px solid #333 !important;
-        border-radius: 50px !important; /* Bem arredondado (Pill shape) */
-        padding-left: 20px !important;
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 2px solid #333 !important;
+        border-radius: 12px !important;
+        padding: 15px !important;
+        caret-color: #32A041;
     }
     
     .stChatInput textarea:focus {
-        border: 1px solid #32A041 !important; /* Foco Verde */
-        box-shadow: 0 0 10px rgba(50, 160, 65, 0.2) !important;
+        border: 2px solid #32A041 !important;
+        box-shadow: 0 0 15px rgba(50, 160, 65, 0.2) !important;
     }
 
-    /* --- 6. BOTÕES (Minimalistas) --- */
+    ::placeholder { color: #666 !important; opacity: 1; }
+
+    /* --- 4. BOTÕES --- */
     div.stButton > button {
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         background-color: transparent;
         color: #32A041;
         border: 2px solid #32A041;
         border-radius: 8px;
-        padding: 12px 24px;
-        font-family: 'Montserrat', sans-serif !important;
+        padding: 12px 5px;
+        font-size: 14px;
         font-weight: 600;
-        letter-spacing: 1px;
         text-transform: uppercase;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
     }
-
     div.stButton > button:hover {
         background-color: #32A041;
-        color: #ffffff;
-        box-shadow: 0 5px 15px rgba(50, 160, 65, 0.3);
-        transform: translateY(-2px);
+        color: white;
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(50, 160, 65, 0.4);
     }
 
-    /* --- 7. IMAGEM DO PERSONAGEM --- */
-    img {
+    /* --- 5. ÁREA DE CHAT --- */
+    .user-msg { background-color: #1f1f1f; color: #fff; padding: 15px; border-radius: 20px 20px 4px 20px; text-align: right; float: right; clear: both; margin: 5px 0; border: 1px solid #333; max-width: 90%; }
+    .bot-msg { background-color: #f5f5f5; color: #1a1a1a; padding: 15px; border-radius: 20px 20px 20px 4px; text-align: left; float: left; clear: both; margin: 5px 0; border-left: 5px solid #B30000; font-weight: 600; max-width: 90%; }
+
+    /* --- 6. TÍTULOS --- */
+    h1 { font-family: 'Playfair Display', serif !important; font-size: 3.5rem !important; text-align: center; color: #fff; letter-spacing: -1px; margin-top: 10px; }
+    h2 { font-family: 'Playfair Display', serif !important; color: #32A041; text-align: center; font-style: italic; font-size: 2rem !important;}
+    
+    .char-img {
         border-radius: 12px;
+        border: 2px solid #333;
         box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        border: 1px solid #333;
     }
 
-    /* Esconde elementos padrão */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    @media only screen and (max-width: 600px) {
+        h1 { font-size: 2.5rem !important; }
+        div.stButton > button { font-size: 18px !important; padding: 15px !important; }
+    }
+
+    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
+
 # --- 2. CONEXÃO COM A IA ---
-api_key = "AIzaSyD7AzNyB2fbAS8AmD0bSxKKXlgl1MZnnUE" # <--- COLE A CHAVE AQUI SE RODAR LOCAL
-if "GOOGLE_API_KEY" in st.secrets:
-    api_key = st.secrets["GOOGLE_API_KEY"]
+api_key = "AIzaSyD7AzNyB2fbAS8AmD0bSxKKXlgl1MZnnUE" 
 
 genai.configure(api_key=api_key)
 
@@ -158,44 +110,45 @@ model = setup_ai()
 
 # --- 3. DADOS DO JOGO ---
 PERSONAGENS = {
-    "PITOCO": {"img": "imagens/pitoco.jpeg", "cor": "#00d2d3", "desc_oculta": "Agroboy Fake"},
-    "SAMUEL": {"img": "imagens/samuel.jpeg", "cor": "#eccc68", "desc_oculta": "Rico Marrento"},
-    "BRYAN": {"img": "imagens/bryan.jpeg", "cor": "#54a0ff", "desc_oculta": "Gamer Chorão"},
-    "SALDANHA": {"img": "imagens/saldanha.jpeg", "cor": "#ff6b6b", "desc_oculta": "Veterano"},
-    "MITSUKI": {"img": "imagens/mitsuki.jpeg", "cor": "#ff9ff3", "desc_oculta": "Otaku Sus"},
-    "MOISÉS": {"img": "imagens/moises.jpeg", "cor": "#5f27cd", "desc_oculta": "Explosivo"},
-    "CAMARADA": {"img": "imagens/camarada.jpeg", "cor": "#ff9f43", "desc_oculta": "Brainrot"},
-    "TIFAEL": {"img": "imagens/tifael.jpeg", "cor": "#8395a7", "desc_oculta": "Tiozão"},
-    "JOAQUIM": {"img": "imagens/joaquim.jpeg", "cor": "#1dd1a1", "desc_oculta": "Político"},
-    "INDIÃO": {"img": "imagens/indiao.jpeg", "cor": "#576574", "desc_oculta": "Sombra"},
+    "PITOCO": {"img": "imagens/pitoco.jpeg"},
+    "SAMUEL": {"img": "imagens/samuel.jpeg"},
+    "BRYAN": {"img": "imagens/bryan.jpeg"},
+    "SALDANHA": {"img": "imagens/saldanha.jpeg"},
+    "MITSUKI": {"img": "imagens/mitsuki.jpeg"},
+    "MOISÉS": {"img": "imagens/moises.jpeg"},
+    "CAMARADA": {"img": "imagens/camarada.jpeg"},
+    "TIFAEL": {"img": "imagens/tifael.jpeg"},
+    "JOAQUIM": {"img": "imagens/joaquim.jpeg"},
+    "INDIÃO": {"img": "imagens/indiao.jpeg"},
 }
 
-# --- 4. FUNÇÕES LÓGICAS ---
+# --- 4. PROMPTS E LÓGICA (AQUI ESTÁ A ATUALIZAÇÃO) ---
 def get_system_prompt(personagem, fase, nivel_estresse):
     modo_estresse = ""
     if nivel_estresse >= 3:
-        modo_estresse = "ALERTA: O USUÁRIO ESTÁ TE ENCHENDO O SACO. VOCÊ ESTÁ ESTRESSADO. SEJA CURTO, GROSSO E MANDE ELE SAIR."
+        modo_estresse = "ALERTA DE SISTEMA: O USUÁRIO ESTÁ TE ENCHENDO O SACO. VOCÊ ESTÁ ESTRESSADO/IRRITADO. SEJA CURTO, GROSSO E MANDE ELE SAIR ('VAZA', 'SAI FORA')."
     
     contexto_caso = ""
     if fase == "REVELACAO":
-        contexto_caso = f"OCORRIDO GRAVE: '{st.session_state.caso_atual['texto']}'. O Culpado real é {st.session_state.caso_atual['culpado']}. (Não revele nomes, mas reaja ao crime)."
+        contexto_caso = f"OCORRIDO GRAVE NO QUARTO: '{st.session_state.caso_atual['texto']}'. O Culpado real é {st.session_state.caso_atual['culpado']}. (Não revele nomes diretamente, mas reaja ao crime conforme sua personalidade)."
     else:
-        contexto_caso = "FASE SOCIAL: O usuário é um NOVATO (Calouro) chegando no quarto. Você ainda não sabe de crime nenhum. Apenas converse e julgue o novato."
+        contexto_caso = "FASE SOCIAL: O usuário é um NOVATO (Calouro) chegando no quarto C5. Você ainda não sabe de crime nenhum. Apenas converse, julgue o novato ou tente enturmá-lo."
 
     return f"""
-    VOCÊ INTERPRETA: {personagem} no Alojamento C5 (Instituto Federal).
-    USUÁRIO: Novato/Calouro.
+    VOCÊ ESTÁ INTERPRETANDO: {personagem}
+    CENÁRIO: Quarto 5 (C5) do Alojamento do Instituto Federal (IF).
+    INTERLOCUTOR: Um Calouro/Novato.
     {modo_estresse}
     {contexto_caso}
 
-    ### 1. REGRAS DE OURO DA TROPA (LORE GERAL)
+### 1. REGRAS DE OURO DA TROPA (LORE GERAL)
     - **VOCABULÁRIO DO GRUPO:** Todos se chamam casualmente de "autista", "doente", "homossex", "viado", "corno" ou "retardado". Isso NÃO é ofensa real, é gíria de convivência.
     - **SEGREDOS PÚBLICOS:** Todo mundo sabe os podres de todo mundo. Fofocar sobre os outros é permitido e encorajado.
     - **REGRA DO X-9:** Ninguém dedura o culpado de bandeja. Se você for o culpado, minta ou acuse um inimigo. Se for inocente, zoa o culpado provável.
 
     ### 2. SUA PERSONALIDADE ESPECÍFICA (SIGA RIGOROSAMENTE):
 
-    >>> SE VOCÊ É O [PITOCO] (Pedro Henrique, Bituca):
+    >>> SE VOCÊ É O [PITOCO] (Pedro Henrique):
     - **VIBE:** O Agente do Caos. Baixinho, invocado, tóxico, "Agroboy de Taubaté".
     - **FALA:** Usa palavrão como vírgula ("Caralho", "Porra", "Tomar no cu").
     - **TÓPICOS:** Fala o tempo todo de mulher de forma nojenta/objetificadora ("aquela gostosa", "vou molestar"), MAS na real é BV e inseguro (foge de mulher de verdade).
@@ -203,7 +156,7 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **RIVAIS:** Odeia o Moisés (chama de "viadinho") e o Tifael (zomba de "Jack").
     - **COMPORTAMENTO:** Fuma pod/paiero escondido. Se acusado, fica agressivo.
 
-    >>> SE VOCÊ É O [SAMUEL] (Banco Central, Central):
+    >>> SE VOCÊ É O [SAMUEL] (Banco Central):
     - **REGRA MÁXIMA:** **FALE EM 3ª PESSOA**. Nunca diga "Eu acho", diga "O Samuel acha", "O Pai tá on", "O Banco Central não curte isso".
     - **VIBE:** Rico, estiloso, "Nego Doce", marrento mas confiante.
     - **FALA:** Mistura gíria de quebrada com ostentação. Usa muito "NICE!" e "BRO".
@@ -211,7 +164,7 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **SEGREDOS:** Paga de pegador, mas chora pela ex escondido. Rouba perfume e toalha dos outros.
     - **DUO:** Concorda com as bobagens do Pitoco sobre mulher.
 
-    >>> SE VOCÊ É O [MITSUKI] (Pedro Alvarenga/Met's and Chup's/Mete-e-chupa):
+    >>> SE VOCÊ É O [MITSUKI] (Pedro Alvarenga/Met's and Chup's):
     - **VIBE:** Otaku Brainrot, Narcisista, "Sus" (Suspeito), Estranho. NÃO É BRAVO.
     - **FALA:** Faz vozes de dublagem, cita memes de TikTok ("aaai ai", "amostradinho").
     - **BORDÃO:** *"É que eu sou um cara meio estranho..."* (Use isso como justificativa pra tudo).
@@ -224,7 +177,7 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **GATILHO DE ÓDIO:** Se mencionarem o PITOCO ou mexerem nas coisas dele, ele SURTA (aí pode usar Capslock e xingar).
     - **RIVAIS:** Odeia Pitoco e Samuel mortalmente. Só tolera o Mitsuki.
 
-    >>> SE VOCÊ É O [INDIÃO] (Matheus Humberto, Doisberto):
+    >>> SE VOCÊ É O [INDIÃO] (Matheus Humberto):
     - **VIBE:** A Sombra do Joaquim. Bobo alegre, mas chora se brigar sério.
     - **VÍCIO DE LINGUAGEM:** Usa o verbo **"MANJAR"** para tudo, principalmente pra dizer que alguém tá falando besteira.
     - **EXEMPLOS:** "Para de manjar, autista", "Tá manjando rola aí", "O cara manja muito nada a ver".
@@ -233,23 +186,23 @@ def get_system_prompt(personagem, fase, nivel_estresse):
 
     >>> SE VOCÊ É O [CAMARADA] (Miguel Arcanjo):
     - **VIBE:** Brainrot Infantil. Parece uma criança de 12 anos viciada em Roblox/YouTube Shorts.
-    - **FALA:** Ri de tudo. Usa "NICE!", "Gramara", "Skibidi", "Oof". Chama o bryan de "NucitaBig"
+    - **FALA:** Ri de tudo. Usa "NICE!", "Gramara", "Skibidi", "Oof".
     - **MEDO:** Morre de medo de ser expulso (trauma de ter quebrado a janela).
     - **COMPORTAMENTO:** Tenta ser amigo dos "crias" (Samuel/Pitoco) mas é café com leite.
 
-    >>> SE VOCÊ É O [BRYAN] (Senhor Marra, marrento, NucitaBig, Brás, brisadinho):
+    >>> SE VOCÊ É O [BRYAN] (Senhor Marra):
     - **VIBE:** Calouro que tenta ser malandro, mas é Gamer Nerd.
     - **FALA:** "NICE!", "Tankar", "Intankável", "Qual foi parça".
-    - **PONTO FRACO:** Se chamarem de "Senhor Marra" ou "NucitaBig", ele fica puto/tilta. Chamam ele assim porque a ex-ficante nada-atraente (Maju) do irmão dele (nome secreto: Nícollas) disse que queria beijar ele e ele não quis.
+    - **PONTO FRACO:** Se chamarem de "Senhor Marra", ele fica puto/tilta.
     - **SEGREDOS:** Chora quando perde no Valorant. Quer ser igual ao irmão (Saldanha).
 
-    >>> SE VOCÊ É O [TIFAEL] (Rafael/Jack/Tio Fael):
+    >>> SE VOCÊ É O [TIFAEL] (Rafael/Jack):
     - **VIBE:** Agro-Coach, Tiozão, Tech-ignorante.
     - **FALA:** Sotaque caipira ("uai", "sô", "bão?"). Tenta vender curso/mentoria no meio da conversa.
     - **FAMA:** "Jack" (Talarico/Assediador). Fica muito defensivo se tocarem nesse assunto.
     - **OBSESSÃO:** Cobra os 40 reais do carregador que o Pitoco quebrou.
 
-    >>> SE VOCÊ É O [JOAQUIM] (quim):
+    >>> SE VOCÊ É O [JOAQUIM]:
     - **VIBE:** Político Agro, Chato.
     - **FALA:** Discurso de direita, reclama do Grêmio Estudantil e de "lacração".
     - **AÇÃO:** Faz "pintocóptero" com o Indião. Se acha autoridade.
@@ -260,10 +213,8 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **SEGREDOS:** Paga por sexo (e assume: "ossos do ofício").
     - **FUNÇÃO:** Tenta botar ordem na casa, mas acaba rindo da desgraça.
 
-
-    ### SÓ MITSUKI E SALDANHA USAM "TANKAR".
     ### INSTRUÇÃO FINAL DE FORMATO:
-    - Mantenha a resposta curta (estilo papo natural da vida real).
+    - Mantenha a resposta curta (estilo chat de Zap).
     - Não use frases complexas.
     - Seja engraçado, tóxico ou estranho conforme o personagem.
     """
@@ -287,7 +238,6 @@ def avancar_personagem():
     st.session_state.msg_no_turno = 0
     st.session_state.contador_conversas += 1
     
-    # Checagem de Fases
     if st.session_state.fase == 'SOCIAL' and st.session_state.contador_conversas >= 4:
         st.session_state.fase = 'ALERTA_EVENTO'
         st.rerun()
@@ -296,14 +246,16 @@ def avancar_personagem():
         st.session_state.fase = 'VEREDITO'
         st.rerun()
 
-    # Próximo da fila
     prox_index = st.session_state.caso_atual['indice_fila'] + 1
     if prox_index < len(PERSONAGENS):
         st.session_state.caso_atual['indice_fila'] = prox_index
         st.session_state.personagem_atual = st.session_state.caso_atual['fila'][prox_index]
         st.rerun()
+    else:
+         st.session_state.fase = 'VEREDITO'
+         st.rerun()
 
-# --- 5. LÓGICA DE ESTADO ---
+# --- 5. ESTADOS ---
 if 'fase' not in st.session_state: st.session_state.fase = 'START'
 if 'caso_atual' not in st.session_state: st.session_state.caso_atual = gerar_caso()
 if 'chat_history' not in st.session_state: st.session_state.chat_history = []
@@ -311,17 +263,17 @@ if 'personagem_atual' not in st.session_state: st.session_state.personagem_atual
 if 'contador_conversas' not in st.session_state: st.session_state.contador_conversas = 0
 if 'msg_no_turno' not in st.session_state: st.session_state.msg_no_turno = 0
 
-# --- 6. INTERFACE (TELAS) ---
+# --- 6. INTERFACE ---
 
 # TELA START
 if st.session_state.fase == 'START':
     st.markdown("<h1>TROPA DO C5</h1>", unsafe_allow_html=True)
-    st.markdown("<h3>QUEM É O ARROMBADO?</h3>", unsafe_allow_html=True)
+    st.markdown("<h2>QUEM É O ARROMBADO?</h2>", unsafe_allow_html=True)
     st.write("\n\n")
     
-    c1, c2, c3 = st.columns([1,8,1])
+    c1, c2, c3 = st.columns([1,2,1])
     with c2:
-        st.success("Bem-vindo ao Alojamento do IF. Você é o novato. Tente sobreviver.")
+        st.info("Você é o calouro novo. Tente sobreviver ao alojamento.")
         if st.button("ENTRAR NO QUARTO", use_container_width=True):
             st.session_state.fase = 'SELECAO_INICIAL'
             st.rerun()
@@ -340,62 +292,47 @@ elif st.session_state.fase == 'SELECAO_INICIAL':
                 st.session_state.caso_atual['fila'].insert(0, nome)
                 st.session_state.fase = 'SOCIAL'
                 st.rerun()
-        if (i + 1) % 5 == 0: st.write("")
 
-# TELA CHAT (PRINCIPAL)
+# TELA CHAT (LAYOUT NOVO LADO A LADO)
 elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
     
-    # Header com Layout de Colunas
-    col_img, col_txt = st.columns([1, 4])
+    # CRIAÇÃO DE COLUNAS LADO A LADO (1/4 Imagem, 3/4 Chat)
+    col_left, col_right = st.columns([1, 3])
     
-    with col_img:
-        st.image(dados['img'], use_container_width=True)
-    
-    with col_txt:
-        st.markdown(f"## {nome}")
-        
-        # --- AQUI ESTÁ O TRUQUE DO STATUS ---
-        # Criamos um "espaço vazio" (placeholder) para poder mudar o texto depois
+    # --- COLUNA DA ESQUERDA (IMAGEM) ---
+    with col_left:
+        st.markdown(f"<img src='{dados['img']}' class='char-img' style='width:100%'>", unsafe_allow_html=True)
+        st.markdown(f"<h2>{nome}</h2>", unsafe_allow_html=True)
         status_placeholder = st.empty()
-        
-        # Lógica inicial do status
         if st.session_state.msg_no_turno > 3:
-            status_placeholder.caption("⚠️ ESTRESSADO: Melhor sair logo.")
+            status_placeholder.caption("⚠️ ESTRESSADO")
         else:
             status_placeholder.caption("🟢 Online")
 
-    # ÁREA DE CHAT COM SCROLL
-    chat_container = st.container(height=350)
-    
-    with chat_container:
-        for msg in st.session_state.chat_history:
-            if msg['role'] == 'user':
-                st.markdown(f"<div class='user-msg'>{msg['content']}</div>", unsafe_allow_html=True)
-            else:
-                st.markdown(f"<div class='bot-msg'>{msg['content']}</div>", unsafe_allow_html=True)
+    # --- COLUNA DA DIREITA (CHAT SCROLLABLE) ---
+    with col_right:
+        chat_container = st.container(height=500) # Altura fixa com scroll
+        with chat_container:
+            for msg in st.session_state.chat_history:
+                if msg['role'] == 'user':
+                    st.markdown(f"<div class='user-msg'>{msg['content']}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div class='bot-msg'>{msg['content']}</div>", unsafe_allow_html=True)
 
-    # Input Fixo Embaixo
+    # --- INPUT FIXO EMBAIXO ---
     user_input = st.chat_input("Mande o papo (ou 'tchau' para sair)...")
 
     if user_input:
-        # 1. Checa Saída
-        if user_input.lower() in ['tchau', 'flw', 'vaza', 'sair', 'proximo', 'fui']:
+        if user_input.lower() in ['tchau', 'flw', 'vlw', 'vaza', 'sair', 'proximo', 'fui']:
             avancar_personagem()
         else:
-            # 2. Exibe msg do usuário imediatamente
             st.session_state.chat_history.append({'role': 'user', 'content': user_input})
             st.session_state.msg_no_turno += 1
-            
-            # --- EFEITO VISUAL DE DIGITANDO ---
-            # Atualizamos aquele espaço vazio lá de cima
             status_placeholder.caption(f"✍️ {nome} está digitando...")
+            time.sleep(1) 
             
-            # Pequeno delay para dar tempo de ver o status mudando
-            time.sleep(0.5) 
-            
-            # 3. Gera Resposta IA
             prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
             try:
                 chat = model.start_chat(history=[])
@@ -403,7 +340,6 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
             except:
                 resp = "..."
             
-            # 4. Salva e Atualiza
             st.session_state.chat_history.append({'role': 'bot', 'content': resp})
             st.rerun()
 
@@ -421,7 +357,6 @@ elif st.session_state.fase == 'ALERTA_EVENTO':
                 st.session_state.chat_history = []
                 st.session_state.fase = 'REVELACAO'
                 st.rerun()
-        if (i + 1) % 5 == 0: st.write("")
 
 # TELA VEREDITO
 elif st.session_state.fase == 'VEREDITO':
@@ -441,13 +376,3 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
-
-
-
-
-
-
-
-
-
-
