@@ -9,8 +9,7 @@ api_key = st.secrets["GOOGLE_API_KEY"] if "GOOGLE_API_KEY" in st.secrets else "C
 genai.configure(api_key=api_key)
 
 # Configuração do Modelo (Gemini Flash é rápido e grátis)
-model = genai.GenerativeModel('gemini-1.5-flash')
-
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 # --- LORE E DADOS DOS PERSONAGENS ---
 PERSONAGENS = {
     "PITOCO": {"img": "imagens/pitoco.jpeg", "desc": "Agroboy Fake, Tóxico e Anão.", "cor": "#32CD32"},
@@ -166,3 +165,4 @@ else:
             st.session_state.historico_chat = []
 
             st.rerun()
+
