@@ -7,30 +7,7 @@ import google.generativeai as genai
 # --- 1. CONFIGURAÇÃO INICIAL ---
 st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="wide")
 
-# --- 2. CONEXÃO COM IA (ROBUSTA) ---
-# Tenta pegar dos secrets (Nuvem) ou usa a variável local (PC)
-api_key = st.secrets["GOOGLE_API_KEY"] if "GOOGLE_API_KEY" in st.secrets else os.environ.get("GOOGLE_API_KEY")
-
-# Se não tiver chave nenhuma, avisa o usuário
-if not api_key:
-    st.error("🚨 ERRO: API Key não encontrada. Adicione nos 'Secrets' do Streamlit.")
-    st.stop()
-
-genai.configure(api_key=api_key)
-
-@st.cache_resource
-def setup_ai():
-    try:
-        # Tenta achar o modelo Flash (mais rápido), senão pega o padrão
-        modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        escolhido = next((m for m in modelos if 'flash' in m), modelos[0] if modelos else None)
-        return genai.GenerativeModel(escolhido) if escolhido else None
-    except:
-        return None
-
-model = setup_ai()
-
-# --- 3. DESIGN SYSTEM (CSS CORRIGIDO) ---
+# --- 2. DESIGN SYSTEM (CSS CORRIGIDO E LEGÍVEL) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
@@ -40,131 +17,177 @@ st.markdown("""
     
     .stApp {
         background-color: #050505;
-        background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
+        background-image: radial-gradient(#111 1px, transparent 1px);
         background-size: 20px 20px;
         color: #e0e0e0;
     }
 
     /* TIPOGRAFIA */
-    h1, .serif-h1 { font-family: 'Playfair Display', serif !important; font-size: 3rem !important; font-weight: 700 !important; text-align: center; color: #fff; margin: 0; }
-    h2, .serif-h2 { font-family: 'Playfair Display', serif !important; font-size: 1.5rem !important; font-style: italic; text-align: center; color: #32A041; margin-top: 0; }
+    h1 { font-family: 'Playfair Display', serif !important; font-size: 3.5rem !important; text-align: center; color: #fff; margin-bottom: 0; }
+    h2 { font-family: 'Playfair Display', serif !important; font-size: 1.5rem !important; font-style: italic; text-align: center; color: #32A041; margin-top: 0; }
 
-    /* NOME DO PERSONAGEM (Estilo Título) */
-    .char-name-display {
+    /* --- AREA DO CHAT (LAYOUT) --- */
+    
+    /* Nome do Personagem (Esquerda) */
+    .char-name-title {
         font-family: 'Playfair Display', serif !important;
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         font-weight: 700;
-        margin-bottom: 10px;
-        text-align: right;
-        /* A cor será definida dinamicamente no Python */
+        margin-bottom: 5px;
+        text-align: left; /* Alinhado com a foto */
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
 
-    /* BALÕES DE CHAT */
+    /* Status (Direita) */
+    .status-indicator {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #888;
+        text-align: right;
+        margin-bottom: 5px;
+        letter-spacing: 1px;
+    }
+
+    /* Container de Rolagem das Mensagens */
     .chat-scroll-area {
-        height: 500px;
+        height: 60vh; /* Ocupa boa parte da tela */
+        min-height: 400px;
         overflow-y: auto;
-        padding-right: 10px;
+        background-color: #0e0e0e;
+        border: 1px solid #222;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
         display: flex;
         flex-direction: column;
     }
-    
+
+    /* Balões de Mensagem */
     .user-msg { 
-        background-color: #1e1e1e; 
-        color: #eee; 
+        background-color: #1f1f1f; 
+        color: #fff; 
         padding: 12px 18px; 
         border-radius: 18px 18px 2px 18px; 
         align-self: flex-end; 
         text-align: right; 
-        margin: 5px 0; 
+        margin: 8px 0; 
         border: 1px solid #333; 
-        float: right;
-        clear: both;
-        max-width: 80%;
+        float: right; 
+        clear: both; 
+        max-width: 85%;
     }
     
     .bot-msg { 
-        background-color: #f0f0f0; 
-        color: #111; 
+        background-color: #f2f2f2; /* Fundo claro para ler melhor */
+        color: #111; /* Texto escuro */
         padding: 12px 18px; 
         border-radius: 18px 18px 18px 2px; 
         align-self: flex-start; 
         text-align: left; 
-        margin: 5px 0; 
-        float: left;
-        clear: both;
-        max-width: 80%;
+        margin: 8px 0; 
+        float: left; 
+        clear: both; 
+        max-width: 85%; 
         font-weight: 500;
         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        /* A borda colorida será inserida inline no Python */
     }
 
-    /* INPUT 100% PRETO */
+    /* --- INPUT (CAIXA DE TEXTO FIXA) --- */
+    /* Remove fundo branco padrão do Streamlit */
+    [data-testid="stBottom"] {
+        background-color: #050505 !important;
+        border-top: 1px solid #222;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+    
+    /* Estilo da caixa de digitação */
     .stChatInput textarea {
         background-color: #000 !important;
         color: #fff !important;
         border: 1px solid #333 !important;
-        border-radius: 12px !important;
+        border-radius: 8px !important;
     }
+    
+    /* Foco na caixa */
     .stChatInput textarea:focus {
-        border: 1px solid #32A041 !important;
-        box-shadow: 0 0 10px rgba(50, 160, 65, 0.2) !important;
-    }
-    [data-testid="stBottom"] {
-        background-color: #050505 !important;
-        border-top: 1px solid #222;
+        border: 1px solid #32A041 !important; /* Verde ao clicar */
+        box-shadow: none !important;
     }
 
-    /* IMAGEM */
+    /* --- IMAGEM --- */
     .profile-img {
         width: 100%;
-        border-radius: 15px;
-        border: 2px solid #333;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        border-radius: 12px;
+        border: 1px solid #333;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.6);
         margin-bottom: 10px;
     }
 
-    /* MOBILE RESPONSIVE */
+    /* --- BOTÕES DE SELEÇÃO --- */
+    div.stButton > button {
+        background-color: transparent;
+        color: #32A041;
+        border: 2px solid #32A041;
+        border-radius: 6px;
+        text-transform: uppercase;
+        font-weight: 700;
+        transition: 0.2s;
+    }
+    div.stButton > button:hover {
+        background-color: #32A041;
+        color: #000;
+    }
+
+    /* --- RESPONSIVIDADE (MOBILE) --- */
     @media only screen and (max-width: 768px) {
-        .profile-img { max-width: 200px; margin: 0 auto 15px auto; display: block; }
-        .char-name-display { text-align: center; font-size: 2rem; }
-        .chat-scroll-area { height: 400px; }
-        h1 { font-size: 2.2rem !important; }
+        .profile-img { max-width: 150px; margin: 0 auto 10px auto; display: block; }
+        .char-name-title { text-align: center; font-size: 1.8rem; }
+        .status-indicator { text-align: center; margin-bottom: 10px; }
+        .chat-scroll-area { height: 50vh; }
+        h1 { font-size: 2.5rem !important; }
     }
 
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-# --- 4. DADOS (CORRIGIDO: CHAVES FECHADAS) ---
+# --- 3. CONEXÃO COM A IA ---
+api_key = st.secrets["GOOGLE_API_KEY"] if "GOOGLE_API_KEY" in st.secrets else os.environ.get("GOOGLE_API_KEY")
+
+if not api_key:
+    st.error("🚨 ERRO: API Key não encontrada. Configure nos Secrets.")
+    st.stop()
+
+genai.configure(api_key=api_key)
+
+@st.cache_resource
+def setup_ai():
+    try:
+        modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        escolhido = next((m for m in modelos if 'flash' in m), modelos[0] if modelos else None)
+        return genai.GenerativeModel(escolhido) if escolhido else None
+    except:
+        return None
+
+model = setup_ai()
+
+# --- 4. DADOS (SINTAXE CORRIGIDA) ---
 PERSONAGENS = {
-    "PITOCO": {"img": "imagens/pitoco.jpeg", "cor": "#00d2d3", "desc_oculta": "Agroboy Fake"},
-    "SAMUEL": {"img": "imagens/samuel.jpeg", "cor": "#eccc68", "desc_oculta": "Rico Marrento"},
-    "BRYAN": {"img": "imagens/bryan.jpeg", "cor": "#54a0ff", "desc_oculta": "Gamer Chorão"},
-    "SALDANHA": {"img": "imagens/saldanha.jpeg", "cor": "#ff6b6b", "desc_oculta": "Veterano"},
-    "MITSUKI": {"img": "imagens/mitsuki.jpeg", "cor": "#ff9ff3", "desc_oculta": "Otaku Sus"},
-    "MOISÉS": {"img": "imagens/moises.jpeg", "cor": "#9c88ff", "desc_oculta": "Explosivo"},
-    "CAMARADA": {"img": "imagens/camarada.jpeg", "cor": "#ff9f43", "desc_oculta": "Brainrot"},
-    "TIFAEL": {"img": "imagens/tifael.jpeg", "cor": "#8395a7", "desc_oculta": "Tiozão"},
-    "JOAQUIM": {"img": "imagens/joaquim.jpeg", "cor": "#1dd1a1", "desc_oculta": "Político"},
-    "INDIÃO": {"img": "imagens/indiao.jpeg", "cor": "#576574", "desc_oculta": "Sombra"}
-} # <--- AQUI ESTAVA O ERRO: Faltava essa chave de fechamento!
+    "PITOCO": {"img": "imagens/pitoco.jpeg", "cor": "#00d2d3"},
+    "SAMUEL": {"img": "imagens/samuel.jpeg", "cor": "#eccc68"},
+    "BRYAN": {"img": "imagens/bryan.jpeg", "cor": "#54a0ff"},
+    "SALDANHA": {"img": "imagens/saldanha.jpeg", "cor": "#ff6b6b"},
+    "MITSUKI": {"img": "imagens/mitsuki.jpeg", "cor": "#ff9ff3"},
+    "MOISÉS": {"img": "imagens/moises.jpeg", "cor": "#9c88ff"},
+    "CAMARADA": {"img": "imagens/camarada.jpeg", "cor": "#ff9f43"},
+    "TIFAEL": {"img": "imagens/tifael.jpeg", "cor": "#8395a7"},
+    "JOAQUIM": {"img": "imagens/joaquim.jpeg", "cor": "#1dd1a1"},
+    "INDIÃO": {"img": "imagens/indiao.jpeg", "cor": "#576574"}
+} 
 
-def get_system_prompt(personagem, fase, nivel_estresse):
-    # Lógica de Estresse
-    modo_estresse = ""
-    if nivel_estresse >= 3:
-        modo_estresse = "ALERTA DE SISTEMA: O USUÁRIO ESTÁ TE ENCHENDO O SACO. VOCÊ ESTÁ ESTRESSADO/IRRITADO. SEJA CURTO, GROSSO E MANDE ELE SAIR ('VAZA', 'SAI FORA')."
-    
-    # Contexto do Caso (Recupera do estado do jogo)
-    caso_atual = st.session_state.get('caso_atual', {"texto": "Nada aconteceu ainda.", "culpado": "Ninguém"})
-    
-    contexto_caso = ""
-    if fase == "REVELACAO":
-        contexto_caso = f"OCORRIDO GRAVE NO QUARTO: '{caso_atual['texto']}'. O Culpado real é {caso_atual['culpado']}. (Não revele nomes diretamente, mas reaja ao crime conforme sua personalidade)."
-    else:
-        contexto_caso = "FASE SOCIAL: O usuário é um NOVATO (Calouro) chegando no quarto C5. Você ainda não sabe de crime nenhum. Apenas converse, julgue o novato ou tente enturmá-lo."
-
-    return f"""
+return f"""
     VOCÊ ESTÁ INTERPRETANDO: {personagem}
     CENÁRIO: Quarto 5 (C5) do Alojamento do Instituto Federal (IF).
     INTERLOCUTOR: Um Calouro/Novato.
@@ -262,9 +285,7 @@ def gerar_caso():
     ]
     texto = random.choice(casos)
     culpado = random.choice(list(PERSONAGENS.keys()))
-    fila = list(PERSONAGENS.keys())
-    random.shuffle(fila)
-    return {"texto": texto, "culpado": culpado, "fila": fila, "indice_fila": 0}
+    return {"texto": texto, "culpado": culpado}
 
 def avancar_personagem():
     st.session_state.chat_history = []
@@ -289,7 +310,15 @@ def avancar_personagem():
 
 # --- 6. ESTADOS ---
 if 'fase' not in st.session_state: st.session_state.fase = 'START'
-if 'caso_atual' not in st.session_state: st.session_state.caso_atual = gerar_caso()
+if 'caso_atual' not in st.session_state: 
+    culpado = random.choice(list(PERSONAGENS.keys()))
+    fila = list(PERSONAGENS.keys())
+    random.shuffle(fila)
+    st.session_state.caso_atual = {"texto": random.choice(["Caso Genérico"]), "culpado": culpado, "fila": fila, "indice_fila": 0}
+    st.session_state.caso_atual = gerar_caso() # Sobrescreve com o real
+    st.session_state.caso_atual['fila'] = fila
+    st.session_state.caso_atual['indice_fila'] = 0
+
 if 'chat_history' not in st.session_state: st.session_state.chat_history = []
 if 'personagem_atual' not in st.session_state: st.session_state.personagem_atual = None
 if 'contador_conversas' not in st.session_state: st.session_state.contador_conversas = 0
@@ -299,8 +328,8 @@ if 'msg_no_turno' not in st.session_state: st.session_state.msg_no_turno = 0
 
 # TELA START
 if st.session_state.fase == 'START':
-    st.markdown("<h1 class='serif-h1'>TROPA DO C5</h1>", unsafe_allow_html=True)
-    st.markdown("<h2 class='serif-h2'>QUEM É O ARROMBADO?</h2>", unsafe_allow_html=True)
+    st.markdown("<h1>TROPA DO C5</h1>", unsafe_allow_html=True)
+    st.markdown("<h2>QUEM É O ARROMBADO?</h2>", unsafe_allow_html=True)
     st.write("\n\n")
     c1, c2, c3 = st.columns([1,2,1])
     with c2:
@@ -310,11 +339,11 @@ if st.session_state.fase == 'START':
 
 # TELA SELEÇÃO
 elif st.session_state.fase == 'SELECAO_INICIAL':
-    st.markdown("<h2 class='serif-h2'>QUEM VOCÊ VAI CUMPRIMENTAR?</h2>", unsafe_allow_html=True)
+    st.markdown("<h2>QUEM VOCÊ VAI CUMPRIMENTAR?</h2>", unsafe_allow_html=True)
     cols = st.columns(5)
     for i, (nome, dados) in enumerate(PERSONAGENS.items()):
         with cols[i % 5]:
-            st.image(dados['img'], use_container_width=True)
+            st.image(dados['img'], use_column_width=True)
             if st.button(f"{nome}", key=f"btn_{nome}"):
                 st.session_state.personagem_atual = nome
                 if nome in st.session_state.caso_atual['fila']:
@@ -323,44 +352,39 @@ elif st.session_state.fase == 'SELECAO_INICIAL':
                 st.session_state.fase = 'SOCIAL'
                 st.rerun()
 
-# TELA CHAT (DESIGN FINAL)
+# TELA CHAT (LAYOUT CORRIGIDO)
 elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
     
-    # Lógica do Status
-    status_txt = "Online"
-    if st.session_state.msg_no_turno > 3: 
-        status_txt = "⚠️ Estressado"
+    # Status
+    status_txt = "🟢 Online"
+    if st.session_state.msg_no_turno > 3: status_txt = "⚠️ Estressado"
     if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user':
         status_txt = "✍️ Digitando..."
 
-    # Layout: 1/3 Imagem, 2/3 Chat
-    col_img, col_chat = st.columns([1, 2.5])
+    # Layout: 1 Coluna Imagem (Esq) | 3 Colunas Chat (Dir)
+    col_img, col_chat = st.columns([1, 3])
     
     with col_img:
-        # Montando HTML da imagem de forma segura
-        img_html = f'<img src="{dados["img"]}" class="profile-img">'
-        status_html = f'<div style="text-align:center; color:#aaa; font-weight:600;">{status_txt}</div>'
-        st.markdown(img_html + status_html, unsafe_allow_html=True)
+        # Nome em cima da imagem
+        st.markdown(f"<div class='char-name-title' style='color: {dados['cor']};'>{nome}</div>", unsafe_allow_html=True)
+        # Imagem
+        st.markdown(f"<img src='{dados['img']}' class='profile-img'>", unsafe_allow_html=True)
         
     with col_chat:
-        # Nome com a cor do personagem
-        st.markdown(f"<div class='char-name-display' style='color: {dados['cor']};'>{nome}</div>", unsafe_allow_html=True)
+        # Status alinhado à direita, em cima do chat
+        st.markdown(f"<div class='status-indicator'>{status_txt}</div>", unsafe_allow_html=True)
         
-        # Montando o Chat Container linha a linha para não quebrar o código
+        # Container de Chat com Scroll
         chat_html = "<div class='chat-scroll-area'>"
-        
         for msg in st.session_state.chat_history:
             if msg['role'] == 'user':
                 chat_html += f"<div class='user-msg'>{msg['content']}</div>"
             else:
-                # Borda esquerda colorida igual ao personagem
+                # Borda colorida
                 chat_html += f"<div class='bot-msg' style='border-left: 5px solid {dados['cor']};'>{msg['content']}</div>"
-        
         chat_html += "</div>"
-        
-        # Renderiza o chat
         st.markdown(chat_html, unsafe_allow_html=True)
 
     # Input Fixo
@@ -383,7 +407,7 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
             
             st.session_state.chat_history.append({'role': 'bot', 'content': resp})
             st.rerun()
-            
+
 # TELA ALERTA
 elif st.session_state.fase == 'ALERTA_EVENTO':
     st.error("🚨 ALERTA: DEU MERDA NO QUARTO!")
@@ -412,4 +436,3 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
-
