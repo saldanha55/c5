@@ -14,7 +14,21 @@ st.markdown("""
 
     /* Fundo Geral */
     .stApp { background-color: #121212; color: #f1f1f1; font-family: 'Black Ops One', monospace; }
-
+    
+    /* --- ÁREA DE INPUT (RODAPÉ) --- */
+    /* Isso pinta a faixa fixa lá embaixo de preto */
+    [data-testid="stBottom"] {
+        background-color: #000000 !important; 
+        border-top: 2px solid #32A041; /* Uma borda verde IF pra dar estilo */
+        padding-bottom: 20px;
+    }
+    
+    /* Isso pinta a caixinha de texto em si */
+    .stChatInput textarea {
+        background-color: #1e1e1e !important;
+        color: white !important;
+        border: 1px solid #333 !important;
+    }
     /* Títulos estilo IF */
     h1 { 
         font-family: 'Oswald', sans-serif; 
@@ -380,6 +394,7 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
 
 
 
