@@ -469,7 +469,7 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
         status_txt = "⚠️ Estressado"
         cor_status = "#ff4757"
     if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user':
-        status_txt = "✍️ Digitando..."
+        status_txt = "Digitando..."
         cor_status = "#eccc68"
 
     col_img, col_chat = st.columns([1, 2.5], gap="large")
@@ -558,31 +558,46 @@ elif st.session_state.fase == 'ALERTA_EVENTO':
 # TELA VEREDITO
 elif st.session_state.fase == 'VEREDITO':
     st.markdown("<h1 class='serif-h1'>QUEM FOI?</h1>", unsafe_allow_html=True)
-    st.markdown(f"<div style='text-align:center; margin-bottom:20px; font-size:1.2rem;'>**OCORRIDO:** {st.session_state.caso_atual['texto']}</div>", unsafe_allow_html=True)
     
-    # Caixa de seleção
+    # Recupera o caso (com segurança contra erros de estado)
+    texto_caso = st.session_state.caso_atual.get('texto', 'Erro ao carregar caso')
+    st.markdown(f"<div style='text-align:center; margin-bottom:20px; font-size:1.2rem;'>**OCORRIDO:** {texto_caso}</div>", unsafe_allow_html=True)
+    
+    # Seletor
     escolha = st.selectbox("Selecione o Culpado:", list(PERSONAGENS.keys()))
     
-    # --- IMAGEM DO SUSPEITO CENTRALIZADA ---
+    # Colunas para centralizar a foto do suspeito escolhido
     c1, c2, c3 = st.columns([1, 1, 1])
     with c2:
-        try:
-            # Mostra a foto do escolhido
-            st.image(PERSONAGENS[escolha]['img'], use_container_width=True)
-        except:
-            st.error("Erro na imagem")
-    # ---------------------------------------
+        try: st.image(PERSONAGENS[escolha]['img'], use_container_width=True)
+        except: pass
 
+    # Botão de Acusar
     if st.button("ACUSAR", type="primary"):
-        if escolha == st.session_state.caso_atual['culpado']:
+        st.session_state.game_over = True
+        st.session_state.palpite_final = escolha
+        st.rerun() # Força atualização imediata para mostrar o resultado
+
+    # Lógica de Resultado (Fica persistente após o clique)
+    if st.session_state.get('game_over'):
+        real = st.session_state.caso_atual['culpado']
+        palpite = st.session_state.get('palpite_final')
+        
+        st.write("---")
+        if palpite == real:
             st.balloons()
-            st.success("ACERTOU! O C5 está salvo.")
+            st.success(f"### ACERTOU! O C5 está salvo.\nFoi o **{real}** mesmo.")
         else:
-            st.error(f"ERROU! Foi o {st.session_state.caso_atual['culpado']}!")
+            st.error(f"### ERROU FEIO!\nQuem fez a merda foi o **{real}**.")
             
-        if st.button("JOGAR DE NOVO"):
+        st.write("\n")
+        
+        # --- A CORREÇÃO DO BOTÃO DE REINICIAR ---
+        # Função que limpa tudo antes de recarregar
+        def reset_game():
             st.session_state.clear()
-            st.rerun()
+            
+        st.button("🔄 JOGAR DE NOVO", on_click=reset_game, type="secondary", use_container_width=True)
 
 
 
