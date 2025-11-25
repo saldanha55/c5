@@ -57,7 +57,7 @@ st.markdown("""
     }
     .bot-msg { 
         background-color: #B30000; /* Vermelho IF */
-        color: #2c3e50; 
+        color: white; 
         padding: 10px 15px; 
         border-radius: 15px 15px 15px 0px; 
         margin: 5px 0; 
@@ -306,7 +306,7 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
             status_placeholder.caption("🟢 Online")
 
     # ÁREA DE CHAT COM SCROLL
-    chat_container = st.container(height=400)
+    chat_container = st.container(height=350)
     
     with chat_container:
         for msg in st.session_state.chat_history:
@@ -332,7 +332,7 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
             status_placeholder.caption(f"✍️ {nome} está digitando...")
             
             # Pequeno delay para dar tempo de ver o status mudando
-            time.sleep(1.5) 
+            time.sleep(0.5) 
             
             # 3. Gera Resposta IA
             prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
@@ -380,6 +380,7 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
 
 
 
