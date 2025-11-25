@@ -91,8 +91,15 @@ st.markdown("""
     div[data-testid="stFormSubmitButton"] button:hover { background-color: #32A041 !important; border-color: #32A041 !important; color: #000 !important; }
 
     /* Layout */
-    .char-name-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; margin: 0; line-height: 1; text-align: center; }
-    .char-subtitle { font-size: 0.85rem; color: #888; font-style: italic; margin-top: 5px; text-align: center; }
+/* Substitua a classe .char-name-title antiga por esta: */
+    .char-name-title {
+        font-family: 'Playfair Display', serif !important; /* Mesma fonte do Título */
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        text-align: center;
+        line-height: 1;
+    }    .char-subtitle { font-size: 0.85rem; color: #888; font-style: italic; margin-top: 5px; text-align: center; }
     .status-text { text-align: center; font-weight: 600; font-size: 0.9rem; margin-top: 10px; letter-spacing: 1px; }
     .chat-scroll-area { height: 55vh; min-height: 400px; overflow-y: auto; background-color: #0e0e0e; border: 1px solid #222; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
     .user-msg { background-color: #1f1f1f; color: #fff; padding: 12px 18px; border-radius: 18px 18px 2px 18px; align-self: flex-end; text-align: right; margin: 5px 0; border: 1px solid #333; float: right; clear: both; max-width: 85%; }
@@ -261,43 +268,39 @@ elif st.session_state.fase == 'SELECAO_INICIAL':
                 st.session_state.caso_atual['fila'].insert(0, nome)
                 st.session_state.fase = 'SOCIAL'; st.rerun()
 
-# TELA CHAT (LAYOUT CORRIGIDO: NOME NA ESQUERDA)
+# TELA CHAT (CORREÇÃO DO DIGITANDO E FONTE)
 elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
     
+    # Define o status padrão
     status_txt = "🟢 Online"
     cor_status = "#32A041"
     if st.session_state.msg_no_turno > 3: 
         status_txt = "⚠️ Estressado"
         cor_status = "#ff4757"
-    if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user':
-        status_txt = "✍️ Digitando..."
-        cor_status = "#eccc68"
 
-    # Layout: Esquerda (Perfil) | Direita (Chat)
-    col_img, col_chat = st.columns([1, 3], gap="medium")
+    col_img, col_chat = st.columns([1, 2.5], gap="large")
     
-    # --- COLUNA DA ESQUERDA: PERFIL COMPLETO ---
     with col_img:
-        # Nome e Subtitulo AGORA EM CIMA DA FOTO
         st.markdown(f"""
-            <div style="text-align: center; margin-bottom: 10px;">
-                <div style='font-family: "Playfair Display"; font-size: 2.5rem; font-weight: 700; color: {dados['cor']}; line-height: 1;'>{nome}</div>
-                <div style='font-size: 0.85rem; color: #888; font-style: italic;'>{dados['subtitulo']}</div>
+            <div style="text-align:center; margin-bottom: 15px;">
+                <div class='char-name-title' style='color: {dados['cor']};'>{nome}</div>
+                <div class='char-subtitle'>{dados['subtitulo']}</div>
             </div>
         """, unsafe_allow_html=True)
         
-        # Imagem
         try:
             st.image(dados['img'], use_container_width=True)
         except:
-            st.error("Erro Img")
+            st.error("Imagem não encontrada")
             
-        # Status embaixo da foto
-        st.markdown(f"<div style='text-align:center; color:{cor_status}; font-weight:bold; margin-top:5px; letter-spacing:1px;'>{status_txt}</div>", unsafe_allow_html=True)
+        # --- AQUI ESTÁ O SEGREDO ---
+        # Criamos um container vazio (placeholder) para poder mudar o texto depois
+        status_placeholder = st.empty()
+        # Mostra o status atual (Online)
+        status_placeholder.markdown(f"<div class='status-text' style='color:{cor_status};'>{status_txt}</div>", unsafe_allow_html=True)
 
-    # --- COLUNA DA DIREITA: APENAS CHAT ---
     with col_chat:
         chat_html = "<div class='chat-scroll-area'>"
         for msg in st.session_state.chat_history:
@@ -308,7 +311,6 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
         chat_html += "</div>"
         st.markdown(chat_html, unsafe_allow_html=True)
 
-        # Formulário
         with st.form(key='chat_form', clear_on_submit=True):
             c1, c2 = st.columns([5, 1])
             with c1:
@@ -323,20 +325,25 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
                 st.session_state.chat_history.append({'role': 'user', 'content': user_input})
                 st.session_state.msg_no_turno += 1
                 
+                # --- EFEITO VISUAL ---
+                # Atualiza o placeholder IMEDIATAMENTE para "Digitando..."
+                status_placeholder.markdown(f"<div class='status-text' style='color:#eccc68;'>✍️ Digitando...</div>", unsafe_allow_html=True)
+                time.sleep(1.5) # Tempo para você ler o "Digitando"
+                
                 prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
                 
-                # --- CORREÇÃO DO ERRO 'NONE' ---
                 if model:
                     try:
                         chat = model.start_chat(history=[])
                         resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
                     except Exception as e:
-                        resp = f"❌ Erro IA: {e}"
+                        resp = f"❌ Erro IA: {str(e)}"
                 else:
-                    resp = "❌ Erro: IA não conectada. Verifique a chave API."
+                    resp = "❌ Erro: IA não conectada."
                 
                 st.session_state.chat_history.append({'role': 'bot', 'content': resp})
                 st.rerun()
+                
 # TELA ALERTA
 elif st.session_state.fase == 'ALERTA_EVENTO':
     st.error("🚨 ALERTA: DEU MERDA NO QUARTO!")
@@ -377,6 +384,7 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("🔄 JOGAR DE NOVO"):
             st.session_state.clear() # Limpa tudo
             st.rerun() # Recarrega a página do zero
+
 
 
 
