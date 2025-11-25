@@ -178,7 +178,7 @@ PERSONAGENS = {
 # --- 5. LÓGICA ---
 def get_system_prompt(personagem, fase, nivel_estresse):
     caso_atual = st.session_state.get('caso_atual', {"texto": "", "culpado": ""})
-    contexto = f"OCORRIDO: '{caso_atual['texto']}'. Culpado: {caso_atual['culpado']}." if fase == "REVELACAO" else "FASE SOCIAL: Calouro novo."
+    contexto = f"OCORRIDO: '{caso_atual['texto']}'. Culpado: {caso_atual['culpado']}." if fase == "REVELACAO" else "FASE SOCIAL: Gabiru novo."
     
     return f"""
     PERSONAGEM: {personagem}. CENÁRIO: Alojamento C5.
@@ -234,7 +234,7 @@ if st.session_state.fase == 'START':
     # O Card Verde (Estilo Pika)
     st.markdown("""
     <div class="intro-card">
-        Bem-vindo ao Alojamento do IF. Você é o <span class="highlight">calouro novo</span> no pedaço.<br><br>
+        Bem-vindo ao Alojamento do IF. Você é o <span class="highlight">gabiru novo</span> no pedaço.<br><br>
         Venha conhecer os moradores, entender a dinâmica caótica do quarto e, acima de tudo...<br>
         <span class="highlight" style="font-size: 1.2rem; color: #fff; text-decoration: underline decoration-color: #32A041;">descobrir quem fez a merda da vez.</span>
     </div>
@@ -376,4 +376,5 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("🔄 JOGAR DE NOVO"):
             st.session_state.clear() # Limpa tudo
             st.rerun() # Recarrega a página do zero
+
 
