@@ -7,10 +7,10 @@ import google.generativeai as genai
 # --- 1. CONFIGURAÇÃO INICIAL ---
 st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="wide")
 
-# --- 2. DESIGN SYSTEM (CSS OTIMIZADO) ---
+# --- 2. DESIGN SYSTEM (CSS FINAL - TELA INICIAL PIKA) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
 
     /* GERAL */
     html, body, [class*="css"], div, input, textarea { font-family: 'Montserrat', sans-serif !important; }
@@ -22,93 +22,88 @@ st.markdown("""
         color: #e0e0e0;
     }
 
-    /* --- CORREÇÃO: REMOVER ESPAÇO VAZIO NO TOPO --- */
-    .block-container {
-        padding-top: 1rem !important; /* Cola o conteúdo no topo */
-        padding-bottom: 2rem !important;
+    /* TÍTULOS */
+    h1 { 
+        font-family: 'Playfair Display', serif !important; 
+        font-size: 4rem !important; 
+        text-align: center; 
+        color: #fff; 
+        margin-bottom: 0; 
+        text-shadow: 0 0 20px rgba(255,255,255,0.2); /* Brilho no título */
+    }
+    h2 { 
+        font-family: 'Playfair Display', serif !important; 
+        font-size: 1.8rem !important; 
+        font-style: italic; 
+        text-align: center; 
+        color: #32A041; 
+        margin-top: -10px;
+        margin-bottom: 40px;
     }
 
-    /* TIPOGRAFIA */
-    h1 { font-family: 'Playfair Display', serif !important; font-size: 3rem !important; text-align: center; color: #fff; margin-bottom: 0; }
-    h2 { font-family: 'Playfair Display', serif !important; font-size: 1.5rem !important; font-style: italic; text-align: center; color: #32A041; margin-top: 0; }
-
-    /* --- CUSTOM INPUT (SUBSTITUI O CHAT INPUT) --- */
-    /* Remove bordas do form */
-    [data-testid="stForm"] {
-        border: none;
-        padding: 0;
-        margin-top: 10px;
+    /* --- O CARD DA SINOPSE (ESTILO VERDE/DARK) --- */
+    .intro-card {
+        background-color: #0e110f; /* Fundo levemente esverdeado/escuro */
+        border: 2px solid #32A041; /* Borda Verde Neon */
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #ccc;
+        box-shadow: 0 0 30px rgba(50, 160, 65, 0.15); /* Glow verde em volta */
+        margin: 0 auto 30px auto;
+        max-width: 700px;
     }
+    .highlight { color: #fff; font-weight: 700; }
 
-    /* Caixa de Texto */
-    div[data-testid="stTextInput"] input {
-        background-color: #000 !important;
-        color: #fff !important;
-        border: 1px solid #333 !important;
-        border-radius: 8px !important;
-        padding: 12px !important;
-        font-size: 1rem !important;
-    }
-    div[data-testid="stTextInput"] input:focus {
-        border: 1px solid #32A041 !important;
-        box-shadow: 0 0 10px rgba(50, 160, 65, 0.2) !important;
-    }
-    /* Esconde label */
-    div[data-testid="stTextInput"] label { display: none; }
-
-    /* Botão Enviar */
-    div[data-testid="stFormSubmitButton"] button {
-        background-color: #1f1f1f;
-        color: #32A041;
-        border: 1px solid #333;
-        border-radius: 8px;
-        height: 48px; /* Altura igual ao input */
-        margin-top: 0px; /* Alinhamento */
+    /* --- BOTÃO SÓLIDO (PREENCHIDO) --- */
+    div.stButton > button {
         width: 100%;
+        background-color: #32A041 !important; /* Verde Sólido */
+        color: #ffffff !important; /* Texto Branco */
+        border: none !important;
+        border-radius: 8px;
+        padding: 18px 24px;
+        font-size: 18px;
+        font-weight: 800;
         text-transform: uppercase;
-        font-weight: bold;
+        letter-spacing: 2px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     }
-    div[data-testid="stFormSubmitButton"] button:hover {
-        background-color: #32A041;
-        color: #000;
-        border-color: #32A041;
-    }
-
-    /* --- AREA DO CHAT --- */
-    .chat-scroll-area {
-        height: 60vh; /* Altura fixa */
-        min-height: 400px;
-        overflow-y: auto;
-        background-color: #0e0e0e;
-        border: 1px solid #222;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-        display: flex;
-        flex-direction: column;
+    
+    div.stButton > button:hover {
+        background-color: #267d32 !important; /* Verde mais escuro no hover */
+        transform: translateY(-3px) scale(1.01);
+        box-shadow: 0 10px 25px rgba(50, 160, 65, 0.4); /* Brilho intenso */
     }
 
-    /* Balões */
-    .user-msg { background-color: #1f1f1f; color: #fff; padding: 12px 18px; border-radius: 18px 18px 2px 18px; align-self: flex-end; text-align: right; margin: 8px 0; border: 1px solid #333; float: right; clear: both; max-width: 85%; }
-    .bot-msg { background-color: #f2f2f2; color: #111; padding: 12px 18px; border-radius: 18px 18px 18px 2px; align-self: flex-start; text-align: left; margin: 8px 0; float: left; clear: both; max-width: 85%; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    /* --- RESTO DO CHAT (MANTIDO IGUAL) --- */
+    /* Input */
+    [data-testid="stBottom"] { background-color: #050505 !important; border-top: 1px solid #222; padding-top: 1rem; padding-bottom: 1rem; }
+    div[data-testid="stTextInput"] input { background-color: #000 !important; color: #fff !important; border: 1px solid #333 !important; border-radius: 8px !important; padding: 15px !important; }
+    div[data-testid="stTextInput"] input:focus { border: 1px solid #32A041 !important; box-shadow: 0 0 10px rgba(50, 160, 65, 0.2) !important; }
+    div[data-testid="stTextInput"] label { display: none; }
+    
+    /* Botão Enviar Pequeno */
+    div[data-testid="stFormSubmitButton"] button { height: 52px; margin-top: 0px; background-color: #1f1f1f !important; border: 1px solid #333 !important; color: #32A041 !important; }
+    div[data-testid="stFormSubmitButton"] button:hover { background-color: #32A041 !important; color: #fff !important; }
 
-    /* HEADER CHAT */
-    .char-name-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; margin: 0; line-height: 1; }
-    .char-subtitle { font-size: 0.85rem; color: #888; font-style: italic; margin-top: 5px; }
-    .status-text { font-weight: 600; font-size: 0.9rem; letter-spacing: 1px; text-align: right; }
-
-    /* IMAGEM */
-    .profile-img { width: 100%; border-radius: 12px; border: 2px solid #333; box-shadow: 0 5px 20px rgba(0,0,0,0.6); }
-
-    /* Botoes de Seleção */
-    div.stButton > button { background: transparent; color: #32A041; border: 2px solid #32A041; border-radius: 6px; text-transform: uppercase; font-weight: 700; }
-    div.stButton > button:hover { background: #32A041; color: #000; }
+    /* Chat Layout */
+    .char-name-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; margin: 0; line-height: 1; text-align: center; }
+    .char-subtitle { font-size: 0.85rem; color: #888; font-style: italic; margin-top: 5px; text-align: center; }
+    .status-text { text-align: center; font-weight: 600; font-size: 0.9rem; margin-top: 10px; letter-spacing: 1px; }
+    .chat-scroll-area { height: 55vh; min-height: 400px; overflow-y: auto; background-color: #0e0e0e; border: 1px solid #222; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
+    .user-msg { background-color: #1f1f1f; color: #fff; padding: 12px 18px; border-radius: 18px 18px 2px 18px; align-self: flex-end; text-align: right; margin: 5px 0; border: 1px solid #333; float: right; clear: both; max-width: 85%; }
+    .bot-msg { background-color: #e6e6e6; color: #111; padding: 12px 18px; border-radius: 18px 18px 18px 2px; align-self: flex-start; text-align: left; margin: 5px 0; float: left; clear: both; max-width: 85%; font-weight: 600; }
+    .profile-img { width: 100%; border-radius: 12px; border: 2px solid #333; box-shadow: 0 5px 20px rgba(0,0,0,0.6); margin-bottom: 15px; }
 
     /* Mobile */
     @media only screen and (max-width: 768px) {
         .profile-img { max-width: 150px; margin: 0 auto 10px auto; display: block; }
-        .chat-header-wrapper { text-align: center; }
         .chat-scroll-area { height: 50vh; }
+        h1 { font-size: 2.5rem !important; }
     }
 
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
@@ -232,15 +227,16 @@ if 'contador_conversas' not in st.session_state: st.session_state.contador_conve
 
 # TELA START
 if st.session_state.fase == 'START':
-    st.markdown("<br><br>", unsafe_allow_html=True) # Espaço extra no topo
+    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<h1>TROPA DO C5</h1>", unsafe_allow_html=True)
     st.markdown("<h2>QUEM É O ARROMBADO?</h2>", unsafe_allow_html=True)
     
+    # O Card Verde (Estilo Pika)
     st.markdown("""
-    <div style='text-align: center; color: #ccc; font-size: 1.2rem; margin: 30px auto; max-width: 600px; line-height: 1.6;'>
-        Bem-vindo ao Alojamento do IF. Você é o calouro novo no pedaço.<br>
-        Venha conhecer os moradores, entender a dinâmica do quarto e, acima de tudo...<br>
-        <b>descobrir quem fez a merda da vez.</b>
+    <div class="intro-card">
+        Bem-vindo ao Alojamento do IF. Você é o <span class="highlight">calouro novo</span> no pedaço.<br><br>
+        Venha conhecer os moradores, entender a dinâmica caótica do quarto e, acima de tudo...<br>
+        <span class="highlight" style="font-size: 1.2rem; color: #fff; text-decoration: underline decoration-color: #32A041;">descobrir quem fez a merda da vez.</span>
     </div>
     """, unsafe_allow_html=True)
     
@@ -380,3 +376,4 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("🔄 JOGAR DE NOVO"):
             st.session_state.clear() # Limpa tudo
             st.rerun() # Recarrega a página do zero
+
