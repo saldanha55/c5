@@ -6,104 +6,113 @@ import google.generativeai as genai
 # --- 1. CONFIGURAÇÃO VISUAL ---
 st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="centered")
 
-# --- DESIGN SYSTEM: INSTITUTO FEDERAL CORE ---
-# Cores do IF: Vermelho (#B30000), Verde (#32A041), Preto/Cinza
-# --- DESIGN SYSTEM: TROPAS DO C5 (MILITARY/TERMINAL STYLE) ---
+# --- DESIGN SYSTEM: LITERATURE & MODERN ---
 st.markdown("""
 <style>
-    /* Importando a fonte Black Ops One */
-    @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap');
+    /* Importando as fontes */
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@700;900&display=swap');
 
-    /* --- 1. FONTE GLOBAL (Tudo com a fonte pedida) --- */
+    /* --- 1. FONTE DO CORPO (Moderno/Clean) --- */
     html, body, [class*="css"], button, input, textarea, div {
-        font-family: 'Black Ops One', cursive !important;
+        font-family: 'Montserrat', sans-serif !important;
     }
 
-    /* --- 2. FUNDO E CORES GERAIS --- */
+    /* --- 2. FONTE DE TÍTULOS (Literature) --- */
+    h1, h2, h3, h4, .role-title {
+        font-family: 'Playfair Display', serif !important;
+    }
+
+    /* --- 3. FUNDO E CORES --- */
     .stApp { 
-        background-color: #0d0d0d; /* Preto quase absoluto */
+        background-color: #0e0e0e; 
         color: #e0e0e0; 
     }
 
-    /* --- 3. BARRA DE DIGITAÇÃO (Estilo Terminal) --- */
-    /* Fundo da área fixa lá embaixo */
+    /* --- 4. BARRA DE DIGITAÇÃO (Clean & Dark) --- */
     [data-testid="stBottom"] {
-        background-color: #000000 !important; 
-        border-top: 3px solid #B30000; /* Linha Vermelha do IF no topo */
-        padding-bottom: 20px;
-        padding-top: 10px;
+        background-color: #121212 !important; 
+        border-top: 1px solid #333;
+        padding-top: 15px;
+        padding-bottom: 25px;
     }
     
-    /* A caixa de texto em si */
+    /* A caixa de texto (Input) */
     .stChatInput textarea {
-        background-color: #1a1a1a !important; /* Cinza muito escuro */
-        color: #32A041 !important; /* Texto Verde Hacker */
-        border: 2px solid #32A041 !important; /* Borda Verde */
-        border-radius: 4px !important; /* Cantos levemente quadrados */
-        text-transform: uppercase; /* Tudo maiúsculo pra dar impacto */
+        background-color: #262626 !important; /* Cinza Chumbo */
+        color: #ffffff !important;
+        border: 1px solid #444 !important;
+        border-radius: 12px !important; /* Bordas arredondadas modernas */
+        font-size: 16px !important;
     }
     
-    /* O ícone de enviar (Aviãozinho) */
-    .stChatInput button {
-        color: #B30000 !important; /* Ícone Vermelho */
+    /* Foco na caixa de texto */
+    .stChatInput textarea:focus {
+        border: 1px solid #B30000 !important; /* Vermelho IF sutil ao clicar */
+        box-shadow: none !important;
     }
 
-    /* --- 4. TÍTULOS --- */
+    /* --- 5. TÍTULOS ESTILIZADOS --- */
     h1 { 
         color: #f1f1f1;
-        background-color: #B30000; /* Vermelho IF */
-        padding: 15px;
+        background: linear-gradient(90deg, #B30000 0%, #7c0000 100%); /* Degradê Vermelho */
+        padding: 20px;
+        border-radius: 0px 0px 15px 15px;
         text-align: center;
-        border-bottom: 5px solid #32A041; /* Verde IF */
         text-transform: uppercase;
-        font-size: 3rem !important;
-        letter-spacing: 2px;
+        letter-spacing: 1px;
+        font-size: 2.8rem !important;
+        border-bottom: 4px solid #32A041; /* Verde IF */
+        margin-top: -50px !important; /* Cola no topo */
     }
-    h2, h3 { color: #32A041; letter-spacing: 1.5px; }
+    
+    h2 { color: #32A041; font-size: 1.8rem !important; margin-bottom: 0px; }
+    h3 { color: #aaa; font-style: italic; font-weight: 400; font-size: 1.2rem !important;}
 
-    /* --- 5. BOTÕES --- */
-    div.stButton > button { 
-        width: 100%; 
-        background-color: #32A041; 
-        color: #000; 
-        border: 2px solid #32A041; 
-        border-radius: 0px; /* Botão quadrado estilo militar */
-        font-size: 1.2rem;
-        padding: 15px;
-        transition: 0.3s;
-        text-transform: uppercase;
-    }
-    div.stButton > button:hover { 
-        background-color: #000; 
-        color: #32A041; 
-        border: 2px solid #32A041;
-        box-shadow: 0 0 10px #32A041; /* Brilho neon */
-    }
-
-    /* --- 6. BALÕES DE CHAT --- */
+    /* --- 6. BALÕES DE CHAT (Moderno) --- */
     .user-msg { 
-        background-color: #1e272e; 
-        color: #32A041; /* Texto verde */
-        padding: 10px 15px; 
-        border: 1px solid #32A041;
-        margin: 5px 0; 
+        background-color: #2b2b2b; 
+        color: #fff; 
+        padding: 12px 18px; 
+        border-radius: 18px 18px 4px 18px; /* Formato de balão moderno */
+        margin: 8px 0; 
         text-align: right; 
         float: right;
         clear: both;
-        max-width: 80%;
-        box-shadow: 4px 4px 0px #000; /* Sombra dura */
+        max-width: 85%;
+        border-right: 3px solid #32A041; /* Detalhe Verde */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     }
     .bot-msg { 
-        background-color: #B30000; 
+        background-color: #B30000; /* Vermelho IF */
         color: #fff; 
-        padding: 10px 15px; 
-        border: 1px solid #fff;
-        margin: 5px 0; 
+        padding: 12px 18px; 
+        border-radius: 18px 18px 18px 4px; 
+        margin: 8px 0; 
         text-align: left; 
         float: left;
         clear: both;
-        max-width: 80%;
-        box-shadow: 4px 4px 0px #000;
+        max-width: 85%;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        font-weight: 500;
+    }
+
+    /* --- 7. BOTÕES --- */
+    div.stButton > button { 
+        background-color: #32A041; 
+        color: white; 
+        border: none; 
+        border-radius: 8px;
+        font-family: 'Montserrat', sans-serif !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: 15px;
+        letter-spacing: 1px;
+        transition: 0.2s;
+    }
+    div.stButton > button:hover { 
+        background-color: #267d32; 
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(50, 160, 65, 0.4);
     }
     
     /* Esconde menu padrão */
@@ -416,6 +425,7 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
 
 
 
