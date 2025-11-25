@@ -1,18 +1,19 @@
 import streamlit as st
 import random
+import os
 import time
 import google.generativeai as genai
 
 # --- 1. CONFIGURAÇÃO VISUAL E START ---
 st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="wide")
 
-# --- DESIGN SYSTEM: PREMIUM DARK EDITORIAL ---
+# --- DESIGN SYSTEM: PREMIUM EDITORIAL (DARK MODE) ---
 st.markdown("""
 <style>
-    /* 1. FONTES */
+    /* 1. IMPORTANDO FONTES */
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
 
-    /* 2. GERAL */
+    /* --- 2. GERAL --- */
     html, body, [class*="css"], div, input, textarea { font-family: 'Montserrat', sans-serif !important; }
     
     .stApp {
@@ -22,34 +23,31 @@ st.markdown("""
         color: #e0e0e0;
     }
 
-    /* 3. CORREÇÃO DA BARRA DE INPUT (ELIMINA O BRANCO) */
+    /* --- 3. INPUT (TUDO PRETO) --- */
     [data-testid="stBottom"] {
-        background-color: #0a0a0a !important; 
+        background-color: #0a0a0a !important;
         border-top: 1px solid #333;
         padding-bottom: 30px;
         padding-top: 20px;
     }
-    
-    /* Remove o container branco padrão do Streamlit */
-    [data-testid="stChatInput"] {
-        background-color: transparent !important;
-    }
 
-    /* Estiliza a caixa de texto */
     .stChatInput textarea {
-        background-color: #111 !important; 
-        color: #fff !important; 
-        border: 1px solid #444 !important;
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 2px solid #333 !important;
         border-radius: 12px !important;
         padding: 15px !important;
+        caret-color: #32A041;
     }
     
     .stChatInput textarea:focus {
-        border: 1px solid #32A041 !important; 
-        box-shadow: 0 0 15px rgba(50, 160, 65, 0.1) !important;
+        border: 2px solid #32A041 !important;
+        box-shadow: 0 0 15px rgba(50, 160, 65, 0.2) !important;
     }
 
-    /* 4. BOTÕES */
+    ::placeholder { color: #666 !important; opacity: 1; }
+
+    /* --- 4. BOTÕES --- */
     div.stButton > button {
         width: 100%;
         white-space: nowrap;
@@ -72,35 +70,11 @@ st.markdown("""
         box-shadow: 0 5px 15px rgba(50, 160, 65, 0.4);
     }
 
-    /* 5. MENSAGENS DO CHAT */
-    .user-msg { 
-        background-color: #1f1f1f; 
-        color: #fff; 
-        padding: 15px; 
-        border-radius: 20px 20px 4px 20px; 
-        text-align: right; 
-        float: right; 
-        clear: both; 
-        margin: 5px 0; 
-        border: 1px solid #333; 
-        max-width: 85%; 
-    }
-    
-    .bot-msg { 
-        background-color: #f5f5f5; 
-        color: #1a1a1a; 
-        padding: 15px; 
-        border-radius: 20px 20px 20px 4px; 
-        text-align: left; 
-        float: left; 
-        clear: both; 
-        margin: 5px 0; 
-        border-left: 5px solid #B30000; 
-        font-weight: 600; 
-        max-width: 85%; 
-    }
+    /* --- 5. ÁREA DE CHAT --- */
+    .user-msg { background-color: #1f1f1f; color: #fff; padding: 15px; border-radius: 20px 20px 4px 20px; text-align: right; float: right; clear: both; margin: 5px 0; border: 1px solid #333; max-width: 90%; }
+    .bot-msg { background-color: #f5f5f5; color: #1a1a1a; padding: 15px; border-radius: 20px 20px 20px 4px; text-align: left; float: left; clear: both; margin: 5px 0; border-left: 5px solid #B30000; font-weight: 600; max-width: 90%; }
 
-    /* 6. TIPOGRAFIA & IMAGENS */
+    /* --- 6. TÍTULOS --- */
     h1 { font-family: 'Playfair Display', serif !important; font-size: 3.5rem !important; text-align: center; color: #fff; letter-spacing: -1px; margin-top: 10px; }
     h2 { font-family: 'Playfair Display', serif !important; color: #32A041; text-align: center; font-style: italic; font-size: 2rem !important;}
     
@@ -119,28 +93,25 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. CONEXÃO COM A IA ---
-# COLE SUA CHAVE NOVA AQUI SE A ANTIGA ESTIVER DANDO ERRO
-api_key = "AIzaSyD7AzNyB2fbAS8AmD0bSxKKXlgl1MZnnUE" 
-
-# Tenta pegar do secrets se existir (prioridade)
-if "GOOGLE_API_KEY" in st.secrets:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-
-genai.configure(api_key=api_key)
+api_key = os.environ.get('GOOGLE_API_KEY')
+if api_key is None:
+    st.error("API Key não encontrada. Configure GOOGLE_API_KEY nos secrets do Streamlit!")
+else:
+    genai.configure(api_key=api_key)
 
 @st.cache_resource
 def setup_ai():
     try:
         modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        escolhido = next((m for m in modelos if 'flash' in m), models[0] if models else None)
+        escolhido = next((m for m in modelos if 'flash' in m), modelos[0] if modelos else None)
         return genai.GenerativeModel(escolhido) if escolhido else None
-    except:
+    except Exception as e:
+        print("Erro no setup_ai:", e)
         return None
 
 model = setup_ai()
+print("Modelo carregado:", model)
 
-# --- 3. DADOS DOS PERSONAGENS ---
 PERSONAGENS = {
     "PITOCO": {"img": "imagens/pitoco.jpeg", "cor": "#00d2d3", "desc_oculta": "Agroboy Fake"},
     "SAMUEL": {"img": "imagens/samuel.jpeg", "cor": "#eccc68", "desc_oculta": "Rico Marrento"},
@@ -151,18 +122,19 @@ PERSONAGENS = {
     "CAMARADA": {"img": "imagens/camarada.jpeg", "cor": "#ff9f43", "desc_oculta": "Brainrot"},
     "TIFAEL": {"img": "imagens/tifael.jpeg", "cor": "#8395a7", "desc_oculta": "Tiozão"},
     "JOAQUIM": {"img": "imagens/joaquim.jpeg", "cor": "#1dd1a1", "desc_oculta": "Político"},
-    "INDIÃO": {"img": "imagens/indiao.jpeg", "cor": "#576574", "desc_oculta": "Sombra"},
+    "INDIÃO": {"img": "imagens/indiao.jpeg", "cor": "#576574", "desc_oculta": "Sombra"}
 }
 
-# --- 4. PROMPTS E LÓGICA (PERSONALIDADES ATUALIZADAS) ---
+# --- 4. PROMPTS E LÓGICA (AQUI ESTÁ A ATUALIZAÇÃO) ---
 def get_system_prompt(personagem, fase, nivel_estresse):
     modo_estresse = ""
     if nivel_estresse >= 3:
         modo_estresse = "ALERTA DE SISTEMA: O USUÁRIO ESTÁ TE ENCHENDO O SACO. VOCÊ ESTÁ ESTRESSADO/IRRITADO. SEJA CURTO, GROSSO E MANDE ELE SAIR ('VAZA', 'SAI FORA')."
     
     contexto_caso = ""
+    caso_atual = st.session_state.get('caso_atual', {"texto": "", "culpado": ""})
     if fase == "REVELACAO":
-        contexto_caso = f"OCORRIDO GRAVE NO QUARTO: '{st.session_state.caso_atual['texto']}'. O Culpado real é {st.session_state.caso_atual['culpado']}. (Não revele nomes diretamente, mas reaja ao crime conforme sua personalidade)."
+        contexto_caso = f"OCORRIDO GRAVE NO QUARTO: '{caso_atual['texto']}'. O Culpado real é {caso_atual['culpado']}. (Não revele nomes diretamente, mas reaja ao crime conforme sua personalidade)."
     else:
         contexto_caso = "FASE SOCIAL: O usuário é um NOVATO (Calouro) chegando no quarto C5. Você ainda não sabe de crime nenhum. Apenas converse, julgue o novato ou tente enturmá-lo."
 
@@ -173,7 +145,7 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     {modo_estresse}
     {contexto_caso}
 
-    ### 1. REGRAS DE OURO DA TROPA (LORE GERAL)
+### 1. REGRAS DE OURO DA TROPA (LORE GERAL)
     - **VOCABULÁRIO DO GRUPO:** Todos se chamam casualmente de "autista", "doente", "homossex", "viado", "corno" ou "retardado". Isso NÃO é ofensa real, é gíria de convivência.
     - **SEGREDOS PÚBLICOS:** Todo mundo sabe os podres de todo mundo. Fofocar sobre os outros é permitido e encorajado.
     - **REGRA DO X-9:** Ninguém dedura o culpado de bandeja. Se você for o culpado, minta ou acuse um inimigo. Se for inocente, zoa o culpado provável.
@@ -244,7 +216,6 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **FALA:** Gírias de cria ("pode pá", "salve"). Voz da razão (mas uma razão meio torta).
     - **SEGREDOS:** Paga por sexo (e assume: "ossos do ofício").
     - **FUNÇÃO:** Tenta botar ordem na casa, mas acaba rindo da desgraça.
-
 
     ### SÓ MITSUKI E SALDANHA USAM "TANKAR".
     ### INSTRUÇÃO FINAL DE FORMATO:
@@ -318,7 +289,7 @@ elif st.session_state.fase == 'SELECAO_INICIAL':
     cols = st.columns(5)
     for i, (nome, dados) in enumerate(PERSONAGENS.items()):
         with cols[i % 5]:
-            st.image(dados['img'], use_container_width=True)
+            st.image(dados['img'], use_column_width=True)
             if st.button(f"{nome}", key=f"btn_{nome}"):
                 st.session_state.personagem_atual = nome
                 if nome in st.session_state.caso_atual['fila']:
@@ -332,11 +303,12 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
     
+    # CRIAÇÃO DE COLUNAS LADO A LADO (1/4 Imagem, 3/4 Chat)
     col_left, col_right = st.columns([1, 3])
     
-    # --- ESQUERDA (IMAGEM) ---
+    # --- COLUNA DA ESQUERDA (IMAGEM) ---
     with col_left:
-        st.markdown(f"<img src='{dados['img']}' class='char-img' style='width:100%'>", unsafe_allow_html=True)
+        st.image(dados['img'], use_column_width=True)
         st.markdown(f"<h2>{nome}</h2>", unsafe_allow_html=True)
         status_placeholder = st.empty()
         if st.session_state.msg_no_turno > 3:
@@ -344,9 +316,9 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
         else:
             status_placeholder.caption("🟢 Online")
 
-    # --- DIREITA (CHAT) ---
+    # --- COLUNA DA DIREITA (CHAT SCROLLABLE) ---
     with col_right:
-        chat_container = st.container(height=500)
+        chat_container = st.container(height=500) # Altura fixa com scroll
         with chat_container:
             for msg in st.session_state.chat_history:
                 if msg['role'] == 'user':
@@ -354,7 +326,7 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
                 else:
                     st.markdown(f"<div class='bot-msg'>{msg['content']}</div>", unsafe_allow_html=True)
 
-    # --- INPUT ---
+    # --- INPUT FIXO EMBAIXO ---
     user_input = st.chat_input("Mande o papo (ou 'tchau' para sair)...")
 
     if user_input:
@@ -365,17 +337,17 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
             st.session_state.msg_no_turno += 1
             status_placeholder.caption(f"✍️ {nome} está digitando...")
             time.sleep(1) 
-            
             prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
-            
-            # --- CORREÇÃO DO ERRO '...' ---
-            try:
-                chat = model.start_chat(history=[])
-                resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
-            except Exception as e:
-                # Agora o erro é mostrado na tela
-                resp = f"❌ [ERRO DE CONEXÃO COM A IA]: {str(e)} \n\n(Verifique se sua API KEY está válida e se tem créditos gratuitos no Google AI Studio)"
-            
+            if model is None:
+                resp = "Erro: IA não foi inicializada."
+            else:
+                try:
+                    print("Enviando mensagem para IA...")
+                    chat = model.start_chat(history=[])
+                    resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
+                except Exception as e:
+                    print("Erro ao enviar mensagem para o modelo:", e)
+                    resp = "..."
             st.session_state.chat_history.append({'role': 'bot', 'content': resp})
             st.rerun()
 
