@@ -1,41 +1,84 @@
 import streamlit as st
 import random
+import time
 import google.generativeai as genai
 
-# --- 1. CONFIGURAÇÃO VISUAL E START ---
-st.set_page_config(page_title="TROPA DO C5", page_icon="🏢", layout="centered")
+# --- 1. CONFIGURAÇÃO VISUAL ---
+st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="centered")
 
-# CSS BRABO (Visual Dark/Moderno)
+# --- DESIGN SYSTEM: INSTITUTO FEDERAL CORE ---
+# Cores do IF: Vermelho (#B30000), Verde (#32A041), Preto/Cinza
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto+Mono:wght@400;700&display=swap');
-    
-    .stApp { background-color: #0F0F0F; color: #e0e0e0; font-family: 'Roboto Mono', monospace; }
-    
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Oswald:wght@500;700&display=swap');
+
+    /* Fundo Geral */
+    .stApp { background-color: #121212; color: #f1f1f1; font-family: 'Roboto Mono', monospace; }
+
+    /* Títulos estilo IF */
     h1 { 
-        font-family: 'Black Ops One', cursive; 
-        color: #ff4757; 
-        text-align: center; 
-        font-size: 3.5rem !important;
-        text-shadow: 3px 3px 0px #000;
-        margin-bottom: 0px;
+        font-family: 'Oswald', sans-serif; 
+        color: #f1f1f1;
+        background-color: #B30000; /* Vermelho IF */
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        text-transform: uppercase;
+        border-bottom: 5px solid #32A041; /* Verde IF */
     }
-    h3 { text-align: center; color: #7bed9f; font-size: 1.2rem; letter-spacing: 3px; margin-top: -10px; }
+    h2, h3 { color: #32A041; font-family: 'Oswald', sans-serif; }
+
+    /* Botões Estilo IF */
+    div.stButton > button { 
+        width: 100%; 
+        background-color: #32A041; 
+        color: white; 
+        border: none; 
+        border-radius: 4px;
+        font-weight: bold;
+        text-transform: uppercase;
+        padding: 12px;
+        transition: 0.3s;
+    }
+    div.stButton > button:hover { background-color: #267d32; border: 1px solid white; }
+
+    /* Chat Bubbles */
+    .user-msg { 
+        background-color: #2c3e50; 
+        color: white; 
+        padding: 10px 15px; 
+        border-radius: 15px 15px 0px 15px; 
+        margin: 5px 0; 
+        text-align: right; 
+        border-right: 4px solid #32A041;
+        float: right;
+        clear: both;
+        max-width: 80%;
+    }
+    .bot-msg { 
+        background-color: #B30000; /* Vermelho IF */
+        color: white; 
+        padding: 10px 15px; 
+        border-radius: 15px 15px 15px 0px; 
+        margin: 5px 0; 
+        text-align: left; 
+        border-left: 4px solid #ffffff;
+        float: left;
+        clear: both;
+        max-width: 80%;
+    }
     
-    .chat-box { border-radius: 8px; padding: 15px; margin-bottom: 12px; font-size: 15px; line-height: 1.4; }
-    .user-msg { background-color: #2f3542; text-align: right; border-right: 4px solid #3742fa; margin-left: 20%; }
-    .bot-msg { background-color: #1e272e; text-align: left; border-left: 4px solid; margin-right: 20%; }
+    /* Container de Imagem */
+    .avatar-img { border-radius: 50%; border: 3px solid #32A041; }
     
-    .big-button { width: 100%; padding: 20px; font-size: 20px; font-weight: bold; cursor: pointer; }
-    
-    /* Esconde as decorações padrão do Streamlit */
+    /* Esconde menu padrão */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
 # --- 2. CONEXÃO COM A IA ---
-api_key = "AIzaSy_SUA_CHAVE_AQUI" # <--- COLE SUA CHAVE AQUI SE FOR RODAR LOCAL
+api_key = "AIzaSy_SUA_CHAVE_AQUI" # <--- COLE A CHAVE AQUI SE RODAR LOCAL
 if "GOOGLE_API_KEY" in st.secrets:
     api_key = st.secrets["GOOGLE_API_KEY"]
 
@@ -44,7 +87,6 @@ genai.configure(api_key=api_key)
 @st.cache_resource
 def setup_ai():
     try:
-        # Busca automática do melhor modelo disponível
         modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
         escolhido = next((m for m in modelos if 'flash' in m), modelos[0] if modelos else None)
         return genai.GenerativeModel(escolhido) if escolhido else None
@@ -67,24 +109,21 @@ PERSONAGENS = {
     "INDIÃO": {"img": "imagens/indiao.jpeg", "cor": "#576574", "desc_oculta": "Sombra"},
 }
 
-# --- 4. PROMPTS E LÓGICA ---
+# --- 4. FUNÇÕES LÓGICAS ---
 def get_system_prompt(personagem, fase, nivel_estresse):
-    # Lógica de Estresse
     modo_estresse = ""
     if nivel_estresse >= 3:
-        modo_estresse = "ALERTA DE SISTEMA: O USUÁRIO ESTÁ TE ENCHENDO O SACO. VOCÊ ESTÁ ESTRESSADO/IRRITADO. SEJA CURTO, GROSSO E MANDE ELE SAIR ('VAZA', 'SAI FORA')."
+        modo_estresse = "ALERTA: O USUÁRIO ESTÁ TE ENCHENDO O SACO. VOCÊ ESTÁ ESTRESSADO. SEJA CURTO, GROSSO E MANDE ELE SAIR."
     
-    # Contexto do Caso
     contexto_caso = ""
     if fase == "REVELACAO":
-        contexto_caso = f"OCORRIDO GRAVE NO QUARTO: '{st.session_state.caso_atual['texto']}'. O Culpado real é {st.session_state.caso_atual['culpado']}. (Não revele nomes diretamente, mas reaja ao crime conforme sua personalidade)."
+        contexto_caso = f"OCORRIDO GRAVE: '{st.session_state.caso_atual['texto']}'. O Culpado real é {st.session_state.caso_atual['culpado']}. (Não revele nomes, mas reaja ao crime)."
     else:
-        contexto_caso = "FASE SOCIAL: O usuário é um NOVATO (Calouro) chegando no quarto C5. Você ainda não sabe de crime nenhum. Apenas converse, julgue o novato ou tente enturmá-lo."
+        contexto_caso = "FASE SOCIAL: O usuário é um NOVATO (Calouro) chegando no quarto. Você ainda não sabe de crime nenhum. Apenas converse e julgue o novato."
 
     return f"""
-    VOCÊ ESTÁ INTERPRETANDO: {personagem}
-    CENÁRIO: Quarto 5 (C5) do Alojamento do Instituto Federal (IF).
-    INTERLOCUTOR: Um Calouro/Novato.
+    VOCÊ INTERPRETA: {personagem} no Alojamento C5 (Instituto Federal).
+    USUÁRIO: Novato/Calouro.
     {modo_estresse}
     {contexto_caso}
 
@@ -161,7 +200,7 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **FUNÇÃO:** Tenta botar ordem na casa, mas acaba rindo da desgraça.
 
     ### INSTRUÇÃO FINAL DE FORMATO:
-    - Mantenha a resposta curta (estilo chat de Zap).
+    - Mantenha a resposta curta (estilo papo natural da vida real).
     - Não use frases complexas.
     - Seja engraçado, tóxico ou estranho conforme o personagem.
     """
@@ -176,151 +215,132 @@ def gerar_caso():
     ]
     texto = random.choice(casos)
     culpado = random.choice(list(PERSONAGENS.keys()))
-    # Cria uma fila aleatória, mas remove o culpado para não ser óbvio demais no começo
     fila = list(PERSONAGENS.keys())
     random.shuffle(fila)
     return {"texto": texto, "culpado": culpado, "fila": fila, "indice_fila": 0}
 
-# --- 5. LÓGICA DE ESTADO (SESSION STATE) ---
-if 'fase' not in st.session_state:
-    st.session_state.fase = 'START' # START, SOCIAL, REVELACAO, VEREDITO
-if 'caso_atual' not in st.session_state:
-    st.session_state.caso_atual = gerar_caso()
-if 'chat_history' not in st.session_state:
+def avancar_personagem():
     st.session_state.chat_history = []
-if 'personagem_atual' not in st.session_state:
-    st.session_state.personagem_atual = None
-if 'contador_conversas' not in st.session_state:
-    st.session_state.contador_conversas = 0
-if 'msg_no_turno' not in st.session_state:
-    st.session_state.msg_no_turno = 0 # Conta quantas msgs trocou com o boneco atual
-
-# --- 6. INTERFACE DO JOGO ---
-
-# TELA 1: START SCREEN
-if st.session_state.fase == 'START':
-    st.markdown("# TROPA DO C5")
-    st.markdown("<h3>QUEM É O ARROMBADO?</h3>", unsafe_allow_html=True)
-    st.write("---")
-    st.write("\n")
+    st.session_state.msg_no_turno = 0
+    st.session_state.contador_conversas += 1
     
-    col1, col2, col3 = st.columns([1,2,1])
-    with col2:
-        st.info("📜 **CONTEXTO:** Você é o calouro novo no alojamento. Conheça a galera, enturme-se... mas cuidado. Tem gente estranha aqui.")
-        if st.button("ENTRAR NO QUARTO (INICIAR)", use_container_width=True):
+    # Checagem de Fases
+    if st.session_state.fase == 'SOCIAL' and st.session_state.contador_conversas >= 4:
+        st.session_state.fase = 'ALERTA_EVENTO'
+        st.rerun()
+    
+    if st.session_state.fase == 'REVELACAO':
+        st.session_state.fase = 'VEREDITO'
+        st.rerun()
+
+    # Próximo da fila
+    prox_index = st.session_state.caso_atual['indice_fila'] + 1
+    if prox_index < len(PERSONAGENS):
+        st.session_state.caso_atual['indice_fila'] = prox_index
+        st.session_state.personagem_atual = st.session_state.caso_atual['fila'][prox_index]
+        st.rerun()
+
+# --- 5. LÓGICA DE ESTADO ---
+if 'fase' not in st.session_state: st.session_state.fase = 'START'
+if 'caso_atual' not in st.session_state: st.session_state.caso_atual = gerar_caso()
+if 'chat_history' not in st.session_state: st.session_state.chat_history = []
+if 'personagem_atual' not in st.session_state: st.session_state.personagem_atual = None
+if 'contador_conversas' not in st.session_state: st.session_state.contador_conversas = 0
+if 'msg_no_turno' not in st.session_state: st.session_state.msg_no_turno = 0
+
+# --- 6. INTERFACE (TELAS) ---
+
+# TELA START
+if st.session_state.fase == 'START':
+    st.markdown("<h1>TROPA DO C5</h1>", unsafe_allow_html=True)
+    st.markdown("<h3>QUEM É O ARROMBADO?</h3>", unsafe_allow_html=True)
+    st.write("\n\n")
+    
+    c1, c2, c3 = st.columns([1,8,1])
+    with c2:
+        st.success("Bem-vindo ao Alojamento do IF. Você é o novato. Tente sobreviver.")
+        if st.button("ENTRAR NO QUARTO", use_container_width=True):
             st.session_state.fase = 'SELECAO_INICIAL'
             st.rerun()
 
-# TELA 2: ESCOLHA DO PRIMEIRO AMIGO
+# TELA SELEÇÃO
 elif st.session_state.fase == 'SELECAO_INICIAL':
-    st.markdown("### QUEM VOCÊ VAI CUMPRIMENTAR PRIMEIRO?")
-    st.caption("Escolha seu primeiro contato. Depois disso, o caos assume.")
-    
+    st.markdown("<h2>QUEM VOCÊ VAI CUMPRIMENTAR?</h2>", unsafe_allow_html=True)
     cols = st.columns(5)
     for i, (nome, dados) in enumerate(PERSONAGENS.items()):
-        # Exibe em linhas de 5
         with cols[i % 5]:
             st.image(dados['img'], use_container_width=True)
-            if st.button(f"Oi, {nome}", key=f"btn_{nome}"):
+            if st.button(f"{nome}", key=f"btn_{nome}"):
                 st.session_state.personagem_atual = nome
-                # Remove o escolhido da fila aleatória pra não repetir logo
                 if nome in st.session_state.caso_atual['fila']:
                     st.session_state.caso_atual['fila'].remove(nome)
-                # Coloca ele no topo
                 st.session_state.caso_atual['fila'].insert(0, nome)
                 st.session_state.fase = 'SOCIAL'
                 st.rerun()
-        # Quebra de linha visual após 5 itens
-        if (i + 1) % 5 == 0:
-            st.write("")
+        if (i + 1) % 5 == 0: st.write("")
 
-# TELA 3: CHAT (Fase Social e Revelação)
+# TELA CHAT (PRINCIPAL)
 elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
-    
-    # Cabeçalho
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
     
-    # Barra de Progresso Visual
-    if st.session_state.fase == 'SOCIAL':
-        st.progress(st.session_state.contador_conversas / 5, text="Socializando...")
-    else:
-        st.error(f"🚨 TEMA: {st.session_state.caso_atual['texto']}")
-
-    # Layout Chat
-    c1, c2 = st.columns([1, 3])
-    with c1:
-        st.image(dados['img'], width=150)
-        # Nível de Stress (Escondido do usuário visualmente, mas lógico)
-        if st.session_state.msg_no_turno > 3:
-            st.caption("⚠️ *Parece irritado*")
-    
-    with c2:
+    # Header
+    col_img, col_txt = st.columns([1, 4])
+    with col_img:
+        st.image(dados['img'], use_container_width=True)
+    with col_txt:
         st.markdown(f"## {nome}")
-        
-        # Area de Chat
-        chat_container = st.container()
-        with chat_container:
-            for msg in st.session_state.chat_history:
-                if msg['role'] == 'user':
-                    st.markdown(f"<div class='chat-box user-msg'>{msg['content']}</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<div class='chat-box bot-msg' style='border-left: 4px solid {msg['cor']}'>{msg['content']}</div>", unsafe_allow_html=True)
-        
-        # Input
-        user_input = st.chat_input("Sua mensagem...")
-        
-        if user_input:
-            # Comandos de Saída
-            if user_input.lower() in ['tchau', 'flw', 'sair', 'proximo']:
-                # Lógica de Troca
-                st.session_state.chat_history = []
-                st.session_state.msg_no_turno = 0
-                st.session_state.contador_conversas += 1
-                
-                # Se conversou com 5 pessoas, solta o evento
-                if st.session_state.fase == 'SOCIAL' and st.session_state.contador_conversas >= 4:
-                    st.session_state.fase = 'ALERTA_EVENTO'
-                    st.rerun()
-                
-                # Se já estava na revelação (última chance), vai pro veredito
-                if st.session_state.fase == 'REVELACAO':
-                    st.session_state.fase = 'VEREDITO'
-                    st.rerun()
+        if st.session_state.msg_no_turno > 3:
+            st.caption("⚠️ ESTRESSADO: Melhor sair logo.")
+        else:
+            st.caption("🟢 Online no quarto")
 
-                # Pega o próximo da fila
-                prox_index = st.session_state.caso_atual['indice_fila'] + 1
-                if prox_index < len(PERSONAGENS):
-                    st.session_state.caso_atual['indice_fila'] = prox_index
-                    st.session_state.personagem_atual = st.session_state.caso_atual['fila'][prox_index]
-                    st.rerun()
-            
+    # ÁREA DE CHAT COM SCROLL (Mágica do Streamlit Container)
+    chat_container = st.container(height=400) # Define altura fixa com scroll
+    
+    with chat_container:
+        # Exibe histórico
+        for msg in st.session_state.chat_history:
+            if msg['role'] == 'user':
+                st.markdown(f"<div class='user-msg'>{msg['content']}</div>", unsafe_allow_html=True)
             else:
-                # Processa Conversa
-                # 1. Incrementa stress
-                st.session_state.msg_no_turno += 1
+                st.markdown(f"<div class='bot-msg'>{msg['content']}</div>", unsafe_allow_html=True)
+
+    # Input Fixo Embaixo
+    user_input = st.chat_input("Mande o papo (ou 'tchau' para sair)...")
+
+    if user_input:
+        # 1. Checa Saída
+        if user_input.lower() in ['tchau', 'flw', 'vaza', 'sair', 'proximo', 'fui']:
+            avancar_personagem()
+        else:
+            # 2. Exibe msg do usuário
+            st.session_state.chat_history.append({'role': 'user', 'content': user_input})
+            st.session_state.msg_no_turno += 1
+            
+            # 3. Animação de Loading (Tipo Gemini)
+            with st.spinner(f"{nome} está digitando..."):
+                # Pequeno delay pra dar sensação de pensamento
+                time.sleep(1) 
                 
-                # 2. Gera Prompt
+                # Gera Resposta IA
                 prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
-                
-                # 3. Chama IA
                 try:
                     chat = model.start_chat(history=[])
                     resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
                 except:
                     resp = "..."
                 
-                st.session_state.chat_history.append({'role': 'user', 'content': user_input})
-                st.session_state.chat_history.append({'role': 'bot', 'content': resp, 'cor': dados['cor']})
-                st.rerun()
+            # 4. Salva e Atualiza
+            st.session_state.chat_history.append({'role': 'bot', 'content': resp})
+            st.rerun()
 
-# TELA 4: ALERTA DE EVENTO (Transition)
+# TELA ALERTA
 elif st.session_state.fase == 'ALERTA_EVENTO':
-    st.markdown("# 🚨 DEU MERDA NO QUARTO!")
-    st.warning(f"### {st.session_state.caso_atual['texto']}")
-    st.write("O clima pesou. Alguém fez isso. Você tem direito a interrogar MAIS UMA PESSOA antes de decidir.")
+    st.error("🚨 ALERTA: DEU MERDA NO QUARTO!")
+    st.markdown(f"### '{st.session_state.caso_atual['texto']}'")
+    st.write("O clima pesou. Você pode pressionar MAIS UM antes de decidir.")
     
-    st.write("### QUEM VOCÊ VAI PRESSIONAR?")
     cols = st.columns(5)
     for i, (nome, dados) in enumerate(PERSONAGENS.items()):
         with cols[i % 5]:
@@ -329,29 +349,23 @@ elif st.session_state.fase == 'ALERTA_EVENTO':
                 st.session_state.chat_history = []
                 st.session_state.fase = 'REVELACAO'
                 st.rerun()
-        if (i + 1) % 5 == 0:
-            st.write("")
+        if (i + 1) % 5 == 0: st.write("")
 
-# TELA 5: VEREDITO
+# TELA VEREDITO
 elif st.session_state.fase == 'VEREDITO':
-    st.markdown("# ⚖️ MOMENTO DA VERDADE")
+    st.markdown("<h1>QUEM FOI?</h1>", unsafe_allow_html=True)
     st.markdown(f"**OCORRIDO:** {st.session_state.caso_atual['texto']}")
-    st.write("Baseado no que você conversou (e nas personalidades), quem foi o autista que fez isso?")
     
     escolha = st.selectbox("Selecione o Culpado:", list(PERSONAGENS.keys()))
     
-    if st.button("ACUSAR E VER RESULTADO", type="primary"):
+    if st.button("ACUSAR", type="primary"):
         culpado_real = st.session_state.caso_atual['culpado']
-        
         if escolha == culpado_real:
             st.balloons()
-            st.success(f"### BOA, CALOURO! ACERTOU EM CHEIO!")
-            st.write(f"Foi o **{culpado_real}** mesmo. O C5 está a salvo... por hoje.")
+            st.success(f"ACERTOU! Foi o {culpado_real}!")
         else:
-            st.error(f"### ERROU FEIO, ERROU RUDE!")
-            st.write(f"Você acusou o {escolha}, mas quem fez a merda foi o **{culpado_real}**!")
-            st.write("Agora você vai ser zoado no grupo do Zap.")
+            st.error(f"ERROU! Quem fez foi o {culpado_real}!")
         
-        if st.button("JOGAR NOVO TURNO"):
+        if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
