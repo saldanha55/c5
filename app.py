@@ -217,7 +217,7 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **SEGREDOS:** Paga por sexo (e assume: "ossos do ofício").
     - **FUNÇÃO:** Tenta botar ordem na casa, mas acaba rindo da desgraça.
 
-    ### SÓ MITSUKI E SALDANHA USAM "TANKAR".
+    ### SÓ MITSUKI E SALDANHA USAM "TANKAR". NINGUÉM USA NEM "AMOSTRADINHO", "BORA BILL" OU TERMOS ASSIM "CASCA DE BALA".
     ### INSTRUÇÃO FINAL DE FORMATO:
     - Mantenha a resposta curta (estilo papo natural da vida real).
     - Não use frases complexas.
@@ -384,3 +384,4 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
