@@ -3,8 +3,14 @@ import random
 import google.generativeai as genai
 from google.api_core import exceptions
 
-# --- 1. CONFIGURAÇÃO DE SEGURANÇA E CONEXÃO ---
+# --- 1. CONFIGURAÇÃO DIRETA (SÓ PARA TESTE) ---
 st.set_page_config(page_title="Mistério no C5", page_icon="🕵️", layout="centered")
+
+# COLE SUA CHAVE NOVA ENTRE AS ASPAS ABAIXO:
+api_key = "AIzaSy_SUA_CHAVE_INTEIRA_AQUI" 
+
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel('gemini-pro')
 
 # CSS para visual Gamer/Dark
 st.markdown("""
@@ -15,20 +21,6 @@ st.markdown("""
     .bot-msg { background-color: #444; text-align: left; border: 1px solid #555; }
 </style>
 """, unsafe_allow_html=True)
-
-try:
-    # Pega a senha dos segredos do Streamlit
-    api_key = st.secrets["GOOGLE_API_KEY"]
-except:
-    st.error("🚨 ERRO DE CONFIGURAÇÃO: Chave de API não encontrada!")
-    st.info("Vá em 'Settings > Secrets' no site do Streamlit e adicione: GOOGLE_API_KEY = 'SuaChaveAqui'")
-    st.stop()
-
-genai.configure(api_key=api_key)
-
-# --- MUDANÇA PRINCIPAL: MODELO CLÁSSICO ---
-# Usamos o 'gemini-pro' direto para evitar o erro 404 de versão.
-model = genai.GenerativeModel('gemini-pro')
 
 # --- 2. DADOS DOS PERSONAGENS ---
 # ATENÇÃO: Certifique-se que suas imagens no GitHub terminam mesmo com .jpeg
@@ -153,3 +145,4 @@ else:
             st.session_state.caso_atual = gerar_caso()
             st.session_state.historico_chat = []
             st.rerun()
+
