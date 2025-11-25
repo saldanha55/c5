@@ -127,15 +127,41 @@ genai.configure(api_key=api_key)
 @st.cache_resource
 def setup_ai():
     try:
-        # Tenta conectar direto no Flash (mais rápido e barato)
-        return genai.GenerativeModel('gemini-1.5-flash')
-    except:
-        try:
-            # Se der erro, tenta o Pro
-            return genai.GenerativeModel('gemini-pro')
-        except Exception as e:
-            st.error(f"Erro fatal na IA: {e}")
+        # 1. Lista todos os modelos disponíveis na sua conta
+        modelos_disponiveis = []
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                modelos_disponiveis.append(m.name)
+        
+        # 2. Lógica de prioridade: Tenta Flash -> Tenta Pro -> Pega o primeiro que tiver
+        modelo_escolhido = None
+        
+        # Tenta achar qualquer versão 'flash' (1.5-flash, 1.5-flash-latest, etc)
+        for m in modelos_disponiveis:
+            if 'flash' in m:
+                modelo_escolhido = m
+                break
+        
+        # Se não achou flash, tenta 'pro'
+        if not modelo_escolhido:
+            for m in modelos_disponiveis:
+                if 'pro' in m:
+                    modelo_escolhido = m
+                    break
+        
+        # Se não achou nenhum específico, pega o primeiro da lista (garantia)
+        if not modelo_escolhido and modelos_disponiveis:
+            modelo_escolhido = modelos_disponiveis[0]
+
+        if modelo_escolhido:
+            # print(f"Modelo conectado: {modelo_escolhido}") # Debug (opcional)
+            return genai.GenerativeModel(modelo_escolhido)
+        else:
             return None
+
+    except Exception as e:
+        st.error(f"Erro ao listar modelos: {e}")
+        return None
 
 model = setup_ai()
 
@@ -336,5 +362,6 @@ elif st.session_state.fase == 'VEREDITO':
         else:
             st.error(f"ERROU! Foi o {st.session_state.caso_atual['culpado']}!")
         if st.button("JOGAR DE NOVO"): st.session_state.clear(); st.rerun()
+
 
 
