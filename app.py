@@ -214,9 +214,19 @@ PERSONAGENS = {
 
 # --- 5. LÓGICA ---
 def get_system_prompt(personagem, fase, nivel_estresse):
-    caso_atual = st.session_state.get('caso_atual', {"texto": "", "culpado": ""})
-    contexto = f"OCORRIDO: '{caso_atual['texto']}'. Culpado: {caso_atual['culpado']}." if fase == "REVELACAO" else "FASE SOCIAL: Gabiru novo."
+    # 1. Definição da variável de estresse (ANTES do return)
+    modo_estresse = ""
+    if nivel_estresse >= 3:
+        modo_estresse = "ALERTA: O USUÁRIO ESTÁ TE ENCHENDO O SACO. VOCÊ ESTÁ ESTRESSADO. SEJA CURTO, GROSSO E MANDE ELE SAIR."
     
+    # 2. Definição do contexto do caso
+    caso_atual = st.session_state.get('caso_atual', {"texto": "Nada aconteceu ainda.", "culpado": "Ninguém"})
+    
+    contexto_caso = ""
+    if fase == "REVELACAO":
+        contexto_caso = f"OCORRIDO GRAVE NO QUARTO: '{caso_atual['texto']}'. O Culpado real é {caso_atual['culpado']}. (Não revele nomes diretamente, mas reaja ao crime conforme sua personalidade)."
+    else:
+        contexto_caso = "FASE SOCIAL: O usuário é um NOVATO (Calouro) chegando no quarto C5. Você ainda não sabe de crime nenhum. Apenas converse, julgue o novato ou tente enturmá-lo."
     return f"""
     VOCÊ ESTÁ INTERPRETANDO: {personagem}
     CENÁRIO: Quarto 5 (C5) do Alojamento do Instituto Federal (IF).
@@ -573,6 +583,7 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
 
 
 
