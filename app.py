@@ -1,27 +1,37 @@
 import streamlit as st
 import random
 import google.generativeai as genai
+from google.api_core import exceptions
 
 # --- 1. CONFIGURAÇÃO DE SEGURANÇA E CONEXÃO ---
-# Tenta pegar a chave dos "Secrets" do Streamlit Cloud
+st.set_page_config(page_title="Mistério no C5", page_icon="🕵️", layout="centered")
+
+# CSS para visual Gamer/Dark
+st.markdown("""
+<style>
+    .stApp { background-color: #1a1a1a; color: white; }
+    .chat-box { border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+    .user-msg { background-color: #333; text-align: right; border: 1px solid #555; }
+    .bot-msg { background-color: #444; text-align: left; border: 1px solid #555; }
+</style>
+""", unsafe_allow_html=True)
+
 try:
+    # Pega a senha dos segredos do Streamlit
     api_key = st.secrets["GOOGLE_API_KEY"]
 except:
-    # Se estiver rodando no seu PC e não tiver secrets configurado
-    st.error("ERRO: Chave de API não encontrada! Configure os Secrets no Streamlit Cloud.")
+    st.error("🚨 ERRO DE CONFIGURAÇÃO: Chave de API não encontrada!")
+    st.info("Vá em 'Settings > Secrets' no site do Streamlit e adicione: GOOGLE_API_KEY = 'SuaChaveAqui'")
     st.stop()
 
-# Configura a biblioteca com a chave
 genai.configure(api_key=api_key)
 
-# Tenta conectar no modelo mais rápido e gratuito (Flash)
-try:
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except:
-    # Fallback para o Pro se o Flash falhar
-    model = genai.GenerativeModel('gemini-pro')
+# --- MUDANÇA PRINCIPAL: MODELO CLÁSSICO ---
+# Usamos o 'gemini-pro' direto para evitar o erro 404 de versão.
+model = genai.GenerativeModel('gemini-pro')
 
 # --- 2. DADOS DOS PERSONAGENS ---
+# ATENÇÃO: Certifique-se que suas imagens no GitHub terminam mesmo com .jpeg
 PERSONAGENS = {
     "PITOCO": {"img": "imagens/pitoco.jpeg", "desc": "Agroboy Fake, Tóxico e Anão.", "cor": "#32CD32"},
     "SAMUEL": {"img": "imagens/samuel.jpeg", "desc": "Rico, 'Nego Doce', Fala em 3ª pessoa.", "cor": "#FFD700"},
@@ -75,23 +85,18 @@ def chat_com_ia(personagem, mensagem_usuario):
         caso=st.session_state.caso_atual['texto'],
         culpado=st.session_state.caso_atual['culpado']
     )
-    # Geração Segura
-    chat = model.start_chat(history=[])
-    response = chat.send_message(f"System instructions: {prompt_final}\nUser message: {mensagem_usuario}")
-    return response.text
+    
+    # Tratamento de erro para o jogo não fechar se a IA falhar
+    try:
+        chat = model.start_chat(history=[])
+        response = chat.send_message(f"System instructions: {prompt_final}\nUser message: {mensagem_usuario}")
+        return response.text
+    except exceptions.NotFound:
+        return "❌ ERRO TÉCNICO: A IA não respondeu (Erro 404). Verifique a chave de API."
+    except Exception as e:
+        return f"❌ A IA bugou: {str(e)}"
 
 # --- 5. INTERFACE ---
-st.set_page_config(page_title="Mistério no C5", page_icon="🕵️", layout="centered")
-
-st.markdown("""
-<style>
-    .stApp { background-color: #1a1a1a; color: white; }
-    .chat-box { border-radius: 10px; padding: 10px; margin-bottom: 10px; }
-    .user-msg { background-color: #333; text-align: right; border: 1px solid #555; }
-    .bot-msg { background-color: #444; text-align: left; border: 1px solid #555; }
-</style>
-""", unsafe_allow_html=True)
-
 if 'caso_atual' not in st.session_state:
     st.session_state.caso_atual = gerar_caso()
 if 'historico_chat' not in st.session_state:
@@ -110,7 +115,7 @@ if st.session_state.caso_atual['indice_fila'] < len(PERSONAGENS):
         try:
             st.image(dados["img"], width=150)
         except:
-            st.info(f"FOTO: {nome_atual}")
+            st.info(f"FOTO: {nome_atual}") # Placeholder se a imagem falhar
     with col2:
         st.subheader(f"Conversando com: {nome_atual}")
         st.caption(dados["desc"])
@@ -148,4 +153,3 @@ else:
             st.session_state.caso_atual = gerar_caso()
             st.session_state.historico_chat = []
             st.rerun()
-
