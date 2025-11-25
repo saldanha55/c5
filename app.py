@@ -355,13 +355,28 @@ elif st.session_state.fase == 'ALERTA_EVENTO':
 elif st.session_state.fase == 'VEREDITO':
     st.markdown("<h1 class='serif-h1'>QUEM FOI?</h1>", unsafe_allow_html=True)
     st.markdown(f"**OCORRIDO:** {st.session_state.caso_atual['texto']}")
+    
     escolha = st.selectbox("Selecione o Culpado:", list(PERSONAGENS.keys()))
+    
+    # Botão de Acusar
     if st.button("ACUSAR", type="primary"):
-        if escolha == st.session_state.caso_atual['culpado']:
-            st.balloons(); st.success("ACERTOU! O C5 está salvo.")
+        st.session_state.game_over = True
+        st.session_state.palpite_final = escolha
+    
+    # Se o jogo acabou, mostra o resultado e o botão de reiniciar
+    if st.session_state.get('game_over'):
+        culpado_real = st.session_state.caso_atual['culpado']
+        palpite = st.session_state.palpite_final
+        
+        if palpite == culpado_real:
+            st.balloons()
+            st.success(f"ACERTOU! O C5 está salvo. Foi o {culpado_real}!")
         else:
-            st.error(f"ERROU! Foi o {st.session_state.caso_atual['culpado']}!")
-        if st.button("JOGAR DE NOVO"): st.session_state.clear(); st.rerun()
-
-
-
+            st.error(f"ERROU! Quem fez foi o {culpado_real}!")
+            
+        st.write("\n")
+        
+        # Botão de Reiniciar (Agora fora do aninhamento)
+        if st.button("🔄 JOGAR DE NOVO"):
+            st.session_state.clear() # Limpa tudo
+            st.rerun() # Recarrega a página do zero
