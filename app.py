@@ -6,122 +6,138 @@ import google.generativeai as genai
 # --- 1. CONFIGURAÇÃO VISUAL ---
 st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="centered")
 
-# --- DESIGN SYSTEM: LITERATURE & MODERN ---
+# --- DESIGN SYSTEM: PREMIUM EDITORIAL (IF PRO) ---
 st.markdown("""
 <style>
-    /* Importando as fontes */
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@700;900&display=swap');
+    /* 1. IMPORTANDO FONTES (Mantendo as que você curtiu) */
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
 
-    /* --- 1. FONTE DO CORPO (Moderno/Clean) --- */
-    html, body, [class*="css"], button, input, textarea, div {
+    /* --- 2. CONFIGURAÇÃO GERAL E FUNDO --- */
+    html, body, [class*="css"], div, input, textarea {
         font-family: 'Montserrat', sans-serif !important;
     }
+    
+    .stApp {
+        /* Fundo Cinza Profundo com micro-padrão de pontos (Grid sutil) */
+        background-color: #0a0a0a;
+        background-image: radial-gradient(#222 1px, transparent 1px);
+        background-size: 20px 20px;
+        color: #e0e0e0;
+    }
 
-    /* --- 2. FONTE DE TÍTULOS (Literature) --- */
-    h1, h2, h3, h4, .role-title {
+    /* --- 3. TÍTULOS (Estilo "Grand") --- */
+    h1 {
         font-family: 'Playfair Display', serif !important;
-    }
-
-    /* --- 3. FUNDO E CORES --- */
-    .stApp { 
-        background-color: #0e0e0e; 
-        color: #e0e0e0; 
-    }
-
-    /* --- 4. BARRA DE DIGITAÇÃO (Clean & Dark) --- */
-    [data-testid="stBottom"] {
-        background-color: #121212 !important; 
-        border-top: 1px solid #333;
-        padding-top: 15px;
-        padding-bottom: 25px;
-    }
-    
-    /* A caixa de texto (Input) */
-    .stChatInput textarea {
-        background-color: #262626 !important; /* Cinza Chumbo */
-        color: #ffffff !important;
-        border: 1px solid #444 !important;
-        border-radius: 12px !important; /* Bordas arredondadas modernas */
-        font-size: 16px !important;
-    }
-    
-    /* Foco na caixa de texto */
-    .stChatInput textarea:focus {
-        border: 1px solid #B30000 !important; /* Vermelho IF sutil ao clicar */
-        box-shadow: none !important;
-    }
-
-    /* --- 5. TÍTULOS ESTILIZADOS --- */
-    h1 { 
-        color: #f1f1f1;
-        background: linear-gradient(90deg, #B30000 0%, #7c0000 100%); /* Degradê Vermelho */
-        padding: 20px;
-        border-radius: 0px 0px 15px 15px;
+        font-weight: 700;
+        font-size: 3.5rem !important;
         text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-size: 2.8rem !important;
-        border-bottom: 4px solid #32A041; /* Verde IF */
-        margin-top: -50px !important; /* Cola no topo */
+        color: #ffffff;
+        background: transparent !important; /* Removemos o fundo vermelho */
+        margin-top: 20px;
+        margin-bottom: 5px;
+        letter-spacing: -1px;
+        text-shadow: 0px 4px 10px rgba(0,0,0,0.8);
     }
     
-    h2 { color: #32A041; font-size: 1.8rem !important; margin-bottom: 0px; }
-    h3 { color: #aaa; font-style: italic; font-weight: 400; font-size: 1.2rem !important;}
+    h2, h3 {
+        font-family: 'Playfair Display', serif !important;
+        text-align: center;
+        font-weight: 400;
+        font-style: italic;
+        color: #32A041; /* Verde IF discreto */
+        margin-top: 0px;
+    }
 
-    /* --- 6. BALÕES DE CHAT (Moderno) --- */
-    .user-msg { 
-        background-color: #2b2b2b; 
-        color: #fff; 
-        padding: 12px 18px; 
-        border-radius: 18px 18px 4px 18px; /* Formato de balão moderno */
-        margin: 8px 0; 
-        text-align: right; 
+    /* --- 4. ÁREA DE CHAT (Visual Limpo) --- */
+    
+    /* Mensagem do Usuário (Dark minimalista) */
+    .user-msg {
+        background-color: #1f1f1f;
+        color: #ffffff;
+        padding: 15px 20px;
+        border-radius: 20px 20px 4px 20px;
+        margin: 10px 0;
+        text-align: right;
         float: right;
         clear: both;
-        max-width: 85%;
-        border-right: 3px solid #32A041; /* Detalhe Verde */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-    .bot-msg { 
-        background-color: #B30000; /* Vermelho IF */
-        color: #fff; 
-        padding: 12px 18px; 
-        border-radius: 18px 18px 18px 4px; 
-        margin: 8px 0; 
-        text-align: left; 
-        float: left;
-        clear: both;
-        max-width: 85%;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        font-weight: 500;
+        max-width: 80%;
+        border: 1px solid #333;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
 
-    /* --- 7. BOTÕES --- */
-    div.stButton > button { 
-        background-color: #32A041; 
-        color: white; 
-        border: none; 
-        border-radius: 8px;
-        font-family: 'Montserrat', sans-serif !important;
-        font-weight: 600;
-        text-transform: uppercase;
-        padding: 15px;
-        letter-spacing: 1px;
-        transition: 0.2s;
+    /* Mensagem do Bot (Estilo Cartão Editorial) */
+    /* Fundo CLARO para aceitar o detalhe vermelho com elegância */
+    .bot-msg {
+        background-color: #f5f5f5; 
+        color: #1a1a1a; /* Texto escuro para leitura perfeita */
+        padding: 18px 22px;
+        border-radius: 20px 20px 20px 4px;
+        margin: 10px 0;
+        text-align: left;
+        float: left;
+        clear: both;
+        max-width: 80%;
+        border-left: 5px solid #B30000; /* O Vermelho IF entra aqui, elegante */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        font-weight: 500;
+        font-size: 15px;
     }
-    div.stButton > button:hover { 
-        background-color: #267d32; 
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(50, 160, 65, 0.4);
+
+    /* --- 5. INPUT FIXO (Moderno e Flutuante) --- */
+    [data-testid="stBottom"] {
+        background: linear-gradient(to top, #0a0a0a 90%, transparent 100%);
+        padding-bottom: 30px;
+        padding-top: 20px;
+        border: none;
+    }
+
+    .stChatInput textarea {
+        background-color: #141414 !important;
+        color: #fff !important;
+        border: 1px solid #333 !important;
+        border-radius: 50px !important; /* Bem arredondado (Pill shape) */
+        padding-left: 20px !important;
     }
     
-    /* Esconde menu padrão */
+    .stChatInput textarea:focus {
+        border: 1px solid #32A041 !important; /* Foco Verde */
+        box-shadow: 0 0 10px rgba(50, 160, 65, 0.2) !important;
+    }
+
+    /* --- 6. BOTÕES (Minimalistas) --- */
+    div.stButton > button {
+        background-color: transparent;
+        color: #32A041;
+        border: 2px solid #32A041;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-family: 'Montserrat', sans-serif !important;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+
+    div.stButton > button:hover {
+        background-color: #32A041;
+        color: #ffffff;
+        box-shadow: 0 5px 15px rgba(50, 160, 65, 0.3);
+        transform: translateY(-2px);
+    }
+
+    /* --- 7. IMAGEM DO PERSONAGEM --- */
+    img {
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        border: 1px solid #333;
+    }
+
+    /* Esconde elementos padrão */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
-
 # --- 2. CONEXÃO COM A IA ---
 api_key = "AIzaSyD7AzNyB2fbAS8AmD0bSxKKXlgl1MZnnUE" # <--- COLE A CHAVE AQUI SE RODAR LOCAL
 if "GOOGLE_API_KEY" in st.secrets:
@@ -425,6 +441,7 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
+
 
 
 
