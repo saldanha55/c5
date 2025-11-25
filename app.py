@@ -7,12 +7,134 @@ import google.generativeai as genai
 # --- 1. CONFIGURAÇÃO INICIAL ---
 st.set_page_config(page_title="TROPA DO C5", page_icon="🌶️", layout="wide")
 
-# --- 2. CONEXÃO COM IA ---
-# Tenta pegar dos secrets (Nuvem) ou usa a variável local (PC)
+# --- 2. DESIGN SYSTEM (CSS OTIMIZADO PARA LAYOUT INTEGRADO) ---
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+
+    /* GERAL */
+    html, body, [class*="css"], div, input, textarea { font-family: 'Montserrat', sans-serif !important; }
+    
+    .stApp {
+        background-color: #050505;
+        background-image: radial-gradient(#111 1px, transparent 1px);
+        background-size: 20px 20px;
+        color: #e0e0e0;
+    }
+
+    /* --- CORREÇÃO 1: REMOVER ESPAÇO VAZIO NO TOPO --- */
+    /* Reduz o padding padrão do container principal do Streamlit */
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 1rem !important;
+    }
+
+    /* TIPOGRAFIA */
+    h1 { font-family: 'Playfair Display', serif !important; font-size: 3rem !important; text-align: center; color: #fff; margin-bottom: 0; }
+    h2 { font-family: 'Playfair Display', serif !important; font-size: 1.5rem !important; font-style: italic; text-align: center; color: #32A041; margin-top: 0; }
+
+    /* --- AREA DO CHAT (ESQUERDA) --- */
+    .char-name-title {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-align: left;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        line-height: 1.2;
+    }
+
+    .status-indicator {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #888;
+        text-align: left; /* Alinhado com o nome */
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    /* --- AREA DO CHAT (DIREITA - CONTAINER DE MENSAGENS) --- */
+    .chat-scroll-area {
+        /* Altura calculada para preencher a tela, deixando espaço para o input abaixo */
+        height: calc(100vh - 180px); 
+        min-height: 400px;
+        overflow-y: auto;
+        background-color: #0e0e0e; /* Cor de fundo do bloco de chat */
+        border: 1px solid #222;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        /* CORREÇÃO 2: Remover borda/radius inferior para conectar com o input */
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom: none; 
+        padding: 20px;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Balões de Mensagem */
+    .user-msg { background-color: #1f1f1f; color: #fff; padding: 12px 18px; border-radius: 18px 18px 2px 18px; align-self: flex-end; text-align: right; margin: 8px 0; border: 1px solid #333; float: right; clear: both; max-width: 85%; }
+    .bot-msg { background-color: #f2f2f2; color: #111; padding: 12px 18px; border-radius: 18px 18px 18px 2px; align-self: flex-start; text-align: left; margin: 8px 0; float: left; clear: both; max-width: 85%; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+    /* --- CORREÇÃO 2: INPUT (CAIXA DE TEXTO INTEGRADA) --- */
+    /* Estiliza o container que segura o input para parecer parte do chat */
+    [data-testid="stBottom"] {
+        background-color: #0e0e0e !important; /* MESMA cor do chat-scroll-area */
+        border: 1px solid #222; /* MESMA borda */
+        border-top: none; /* Remove a separação superior */
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        padding-top: 10px !important;
+        padding-bottom: 15px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        box-shadow: 0 -5px 10px rgba(0,0,0,0.2); /* Sombra sutil para cima */
+    }
+    
+    /* Estilo interno da caixa de digitação */
+    .stChatInput textarea {
+        background-color: #000 !important;
+        color: #fff !important;
+        border: 1px solid #333 !important;
+        border-radius: 20px !important; /* Mais arredondado */
+    }
+    .stChatInput textarea:focus {
+        border: 1px solid #32A041 !important;
+        box-shadow: none !important;
+    }
+
+    /* --- IMAGEM --- */
+    .profile-img {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid #333;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+    }
+
+    /* --- BOTÕES DE SELEÇÃO --- */
+    div.stButton > button { background-color: transparent; color: #32A041; border: 2px solid #32A041; border-radius: 6px; text-transform: uppercase; font-weight: 700; transition: 0.2s; }
+    div.stButton > button:hover { background-color: #32A041; color: #000; }
+
+    /* --- RESPONSIVIDADE (MOBILE) --- */
+    @media only screen and (max-width: 768px) {
+        .profile-img { max-width: 120px; margin: 0 auto 5px auto; display: block; }
+        .char-name-title { text-align: center; font-size: 1.5rem; margin-bottom: 0;}
+        .status-indicator { text-align: center; margin-bottom: 10px; }
+        .chat-scroll-area { height: 55vh; }
+        h1 { font-size: 2.5rem !important; }
+    }
+
+    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
+
+# --- 3. CONEXÃO COM A IA ---
 api_key = st.secrets["GOOGLE_API_KEY"] if "GOOGLE_API_KEY" in st.secrets else os.environ.get("GOOGLE_API_KEY")
 
 if not api_key:
-    st.error("🚨 ERRO: API Key não encontrada. Adicione nos 'Secrets' do Streamlit.")
+    st.error("🚨 ERRO: API Key não encontrada. Configure nos Secrets.")
     st.stop()
 
 genai.configure(api_key=api_key)
@@ -28,71 +150,21 @@ def setup_ai():
 
 model = setup_ai()
 
-# --- 3. DESIGN SYSTEM (CSS) ---
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
-
-    /* GERAL */
-    html, body, [class*="css"], div, input, textarea { font-family: 'Montserrat', sans-serif !important; }
-    
-    .stApp {
-        background-color: #050505;
-        background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
-        background-size: 20px 20px;
-        color: #e0e0e0;
-    }
-
-    /* TIPOGRAFIA */
-    h1, .serif-h1 { font-family: 'Playfair Display', serif !important; font-size: 3rem !important; font-weight: 700 !important; text-align: center; color: #fff; margin-bottom: 0; }
-    h2, .serif-h2 { font-family: 'Playfair Display', serif !important; font-size: 1.5rem !important; font-style: italic; text-align: center; color: #32A041; margin-top: 0; }
-
-    /* CHAT & INPUT */
-    [data-testid="stBottom"] { background-color: #050505 !important; border-top: 1px solid #222; padding-top: 1rem; padding-bottom: 1rem; }
-    .stChatInput textarea { background-color: #000 !important; color: #fff !important; border: 1px solid #333 !important; border-radius: 8px !important; }
-    .stChatInput textarea:focus { border: 1px solid #32A041 !important; box-shadow: none !important; }
-
-    /* LAYOUT CHAT */
-    .char-name-title { font-family: 'Playfair Display', serif !important; font-size: 2.2rem; font-weight: 700; margin-bottom: 5px; text-align: left; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-    .status-indicator { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #888; text-align: right; margin-bottom: 5px; letter-spacing: 1px; }
-    .chat-scroll-area { height: 60vh; min-height: 400px; overflow-y: auto; background-color: #0e0e0e; border: 1px solid #222; border-radius: 12px; padding: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
-    
-    /* MENSAGENS */
-    .user-msg { background-color: #1f1f1f; color: #fff; padding: 12px 18px; border-radius: 18px 18px 2px 18px; align-self: flex-end; text-align: right; margin: 8px 0; border: 1px solid #333; float: right; clear: both; max-width: 85%; }
-    .bot-msg { background-color: #f2f2f2; color: #111; padding: 12px 18px; border-radius: 18px 18px 18px 2px; align-self: flex-start; text-align: left; margin: 8px 0; float: left; clear: both; max-width: 85%; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-
-    /* IMAGEM & BOTÕES */
-    .profile-img { width: 100%; border-radius: 12px; border: 1px solid #333; box-shadow: 0 5px 20px rgba(0,0,0,0.6); margin-bottom: 10px; }
-    div.stButton > button { background-color: transparent; color: #32A041; border: 2px solid #32A041; border-radius: 6px; text-transform: uppercase; font-weight: 700; transition: 0.2s; }
-    div.stButton > button:hover { background-color: #32A041; color: #000; }
-
-    /* MOBILE */
-    @media only screen and (max-width: 768px) {
-        .profile-img { max-width: 150px; margin: 0 auto 10px auto; display: block; }
-        .char-name-title { text-align: center; font-size: 1.8rem; }
-        .status-indicator { text-align: center; margin-bottom: 10px; }
-        .chat-scroll-area { height: 50vh; }
-        h1 { font-size: 2.5rem !important; }
-    }
-    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
-</style>
-""", unsafe_allow_html=True)
-
-# --- 4. DADOS ---
+# --- 4. DADOS (VERIFIQUE AS EXTENSÕES .JPG/.PNG) ---
 PERSONAGENS = {
-    "PITOCO": {"img": "imagens/pitoco.jpeg", "cor": "#00d2d3"},
-    "SAMUEL": {"img": "imagens/samuel.jpeg", "cor": "#eccc68"},
-    "BRYAN": {"img": "imagens/bryan.jpeg", "cor": "#54a0ff"},
-    "SALDANHA": {"img": "imagens/saldanha.jpeg", "cor": "#ff6b6b"},
-    "MITSUKI": {"img": "imagens/mitsuki.jpeg", "cor": "#ff9ff3"},
-    "MOISÉS": {"img": "imagens/moises.jpeg", "cor": "#9c88ff"},
-    "CAMARADA": {"img": "imagens/camarada.jpeg", "cor": "#ff9f43"},
-    "TIFAEL": {"img": "imagens/tifael.jpeg", "cor": "#8395a7"},
-    "JOAQUIM": {"img": "imagens/joaquim.jpeg", "cor": "#1dd1a1"},
-    "INDIÃO": {"img": "imagens/indiao.jpeg", "cor": "#576574"}
+    "PITOCO": {"img": "imagens/pitoco.jpg", "cor": "#00d2d3"},
+    "SAMUEL": {"img": "imagens/samuel.jpg", "cor": "#eccc68"},
+    "BRYAN": {"img": "imagens/bryan.jpg", "cor": "#54a0ff"},
+    "SALDANHA": {"img": "imagens/saldanha.jpg", "cor": "#ff6b6b"},
+    "MITSUKI": {"img": "imagens/mitsuki.jpg", "cor": "#ff9ff3"},
+    "MOISÉS": {"img": "imagens/moises.jpg", "cor": "#9c88ff"},
+    "CAMARADA": {"img": "imagens/camarada.jpg", "cor": "#ff9f43"},
+    "TIFAEL": {"img": "imagens/tifael.jpg", "cor": "#8395a7"},
+    "JOAQUIM": {"img": "imagens/joaquim.jpg", "cor": "#1dd1a1"},
+    "INDIÃO": {"img": "imagens/indiao.jpg", "cor": "#576574"}
 }
 
-# --- 5. LÓGICA (COM O TEXTO GIGANTE INDENTADO CORRETAMENTE) ---
+# --- 5. LÓGICA ---
 def get_system_prompt(personagem, fase, nivel_estresse):
     # Lógica de Estresse
     modo_estresse = ""
@@ -187,7 +259,7 @@ def get_system_prompt(personagem, fase, nivel_estresse):
     - **SEGREDOS:** Paga por sexo (e assume: "ossos do ofício").
     - **FUNÇÃO:** Tenta botar ordem na casa, mas acaba rindo da desgraça.
 
-    ### SÓ MITSUKI E SALDANHA USAM "TANKAR". NINGUEM USA "AMOSTRADINHO", "CASCA DE BALA", "BORA BILL"
+    ### SÓ MITSUKI E SALDANHA USAM "TANKAR".
     ### INSTRUÇÃO FINAL DE FORMATO:
     - Mantenha a resposta curta (estilo papo natural da vida real).
     - Não use frases complexas.
@@ -204,9 +276,7 @@ def gerar_caso():
     ]
     texto = random.choice(casos)
     culpado = random.choice(list(PERSONAGENS.keys()))
-    fila = list(PERSONAGENS.keys())
-    random.shuffle(fila)
-    return {"texto": texto, "culpado": culpado, "fila": fila, "indice_fila": 0}
+    return {"texto": texto, "culpado": culpado}
 
 def avancar_personagem():
     st.session_state.chat_history = []
@@ -260,11 +330,16 @@ if st.session_state.fase == 'START':
 
 # TELA SELEÇÃO
 elif st.session_state.fase == 'SELECAO_INICIAL':
-    st.markdown("<h2 class='serif-h2'>QUEM VOCÊ VAI CUMPRIMENTAR?</h2>", unsafe_allow_html=True)
+    st.markdown("<h2>QUEM VOCÊ VAI CUMPRIMENTAR?</h2>", unsafe_allow_html=True)
     cols = st.columns(5)
     for i, (nome, dados) in enumerate(PERSONAGENS.items()):
         with cols[i % 5]:
-            st.image(dados['img'], use_column_width=True)
+            # Usa st.image para garantir carregamento
+            try:
+                st.image(dados['img'], use_container_width=True)
+            except:
+                st.error(f"Erro img: {nome}")
+                
             if st.button(f"{nome}", key=f"btn_{nome}"):
                 st.session_state.personagem_atual = nome
                 if nome in st.session_state.caso_atual['fila']:
@@ -273,43 +348,39 @@ elif st.session_state.fase == 'SELECAO_INICIAL':
                 st.session_state.fase = 'SOCIAL'
                 st.rerun()
 
-# TELA CHAT (DESIGN FINAL AJUSTADO)
+# TELA CHAT (LAYOUT FINAL INTEGRADO)
 elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
     nome = st.session_state.personagem_atual
     dados = PERSONAGENS[nome]
     
-    # Status
     status_txt = "🟢 Online"
     cor_status = "#32A041"
-    
     if st.session_state.msg_no_turno > 3: 
         status_txt = "⚠️ Estressado"
         cor_status = "#ff4757"
-        
     if len(st.session_state.chat_history) > 0 and st.session_state.chat_history[-1]['role'] == 'user':
         status_txt = "✍️ Digitando..."
         cor_status = "#eccc68"
 
-    # Layout: 1/3 Imagem, 2/3 Chat
-    col_img, col_chat = st.columns([1, 3], gap="medium")
+    # Layout: Coluna da Esquerda (Info) e Direita (Chat)
+    col_img, col_chat = st.columns([0.8, 3], gap="large")
     
     with col_img:
-        # Imagem usando st.image (Carrega melhor que HTML puro às vezes)
+        # Nome e Status alinhados à esquerda
+        st.markdown(f"""
+            <div style="margin-bottom: 15px;">
+                <div class='char-name-title' style='color: {dados['cor']};'>{nome}</div>
+                <div class='status-indicator' style='color: {cor_status};'>{status_txt}</div>
+            </div>
+        """, unsafe_allow_html=True)
+        # Imagem
         try:
             st.image(dados['img'], use_container_width=True)
         except:
-            st.error(f"Erro na img: {dados['img']}")
-            
-    with col_chat:
-        # Nome e Status Agrupados
-        st.markdown(f"""
-            <div style="border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px;">
-                <div class='char-name-title' style='color: {dados['cor']}; margin-bottom: 0px;'>{nome}</div>
-                <div style='font-family: Montserrat; font-size: 0.9rem; color: {cor_status}; font-weight: 600;'>{status_txt}</div>
-            </div>
-        """, unsafe_allow_html=True)
+             st.markdown(f"<div style='height:200px; background:#222; color:#fff; display:flex; align-items:center; justify-content:center;'>Erro na Imagem</div>", unsafe_allow_html=True)
         
-        # Container de Chat
+    with col_chat:
+        # Container de Chat (Rola as mensagens)
         chat_html = "<div class='chat-scroll-area'>"
         for msg in st.session_state.chat_history:
             if msg['role'] == 'user':
@@ -319,7 +390,7 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
         chat_html += "</div>"
         st.markdown(chat_html, unsafe_allow_html=True)
 
-    # Input Fixo
+    # Input Fixo (CSS faz ele parecer integrado ao container acima)
     user_input = st.chat_input("Mande o papo...")
 
     if user_input:
@@ -330,14 +401,12 @@ elif st.session_state.fase in ['SOCIAL', 'REVELACAO']:
             st.session_state.msg_no_turno += 1
             time.sleep(0.2)
             
-            # Chama a IA e MOSTRA O ERRO SE TIVER
             prompt = get_system_prompt(nome, st.session_state.fase, st.session_state.msg_no_turno)
             try:
                 chat = model.start_chat(history=[])
                 resp = chat.send_message(f"SYSTEM: {prompt}\nUSER: {user_input}").text
             except Exception as e:
-                # ISSO AQUI VAI TE MOSTRAR POR QUE ESTÁ DANDO "..."
-                resp = f"❌ ERRO DA IA: {str(e)} \n(Verifique a Chave API)"
+                resp = f"❌ ERRO IA: {str(e)}"
             
             st.session_state.chat_history.append({'role': 'bot', 'content': resp})
             st.rerun()
@@ -370,4 +439,3 @@ elif st.session_state.fase == 'VEREDITO':
         if st.button("JOGAR DE NOVO"):
             st.session_state.clear()
             st.rerun()
-
